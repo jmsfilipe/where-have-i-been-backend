@@ -18,8 +18,10 @@ import pdb
 
 import logging as mod_logging
 import math as mod_math
+import datetime
 
 from . import utils as mod_utils
+from math import sqrt
 
 # Generic geo related function and class(es)
 
@@ -273,7 +275,7 @@ def simplify_polyline(points, max_distance):
     # Now that we have the most distance point, compute its real distance:
     real_max_distance = distance_from_line(points[tmp_max_distance_position], begin, end)
 
-    if real_max_distance < max_distance:
+    if real_max_distance < max_distance and points[point_no+1].time - points[point_no].time < datetime.timedelta(seconds=30):
         return [begin, end]
 
     return (simplify_polyline(points[:tmp_max_distance_position + 2], max_distance) +
