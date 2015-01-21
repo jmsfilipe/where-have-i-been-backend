@@ -26,6 +26,7 @@ import collections as mod_collections
 import copy as mod_copy
 import datetime as mod_datetime
 import numpy
+import datetime
 
 from . import utils as mod_utils
 from . import geo as mod_geo
@@ -745,6 +746,10 @@ class GPXTrack:
     def clone(self):
         return mod_copy.deepcopy(self)
 
+
+
+
+
     def __hash__(self):
         return mod_utils.hash_object(self, 'name', 'description', 'number', 'segments')
 
@@ -829,12 +834,12 @@ class GPXTrackSegment:
             return 0
         return len(self.points)
 
-    def split(self, point_no):
+    def split(self, first_point, last_point):
         """ Splits this segment in two parts. Point #point_no remains in the first part.
         Returns a list with two GPXTrackSegments """
-        part_1 = self.points[:point_no + 1]
-        part_2 = self.points[point_no + 1:]
-        return GPXTrackSegment(part_1), GPXTrackSegment(part_2)
+        part_1 = self.points[first_point:last_point]
+        #part_2 = self.points[point_no + 1:]
+        return GPXTrackSegment(part_1)#, GPXTrackSegment(part_2)
 
     def join(self, track_segment):
         """ Joins with another segment """
@@ -1280,6 +1285,23 @@ class GPX:
         self.max_latitude = None
         self.min_longitude = None
         self.max_longitude = None
+
+    def track2trip(self, split_on_new_track=True, split_on_new_track_interval=10, min_sameness_distance=10, min_sameness_interval=2):
+        segment_list = []
+        final_list = []
+        first_point = 0
+        for track in self.tracks:
+            for segment in track.segments:
+                for point_no in range(len(segment.points[1:-1])):
+                    if segment.points[point_no+1].time - segment.points[point_no].time > datetime.timedelta(minutes=split_on_new_track_interval) and \
+                        segment.points[point_no].distance_2d(segment.points[point_no+1]) < min_sameness_distance:
+                        segment_list.append(segment.split(first_point, point_no))
+                        first_point = point_no
+
+        segment_list.append(segment.split(first_point, -1))
+
+        return segment_list
+
 
     def simplify(self, max_distance=None):
         """
