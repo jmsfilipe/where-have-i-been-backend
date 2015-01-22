@@ -430,6 +430,9 @@ class GPXTrack:
 
         self.segments = []
 
+    def __len__(self):
+        return len(self.segments)
+
     def simplify(self, max_distance=None):
         """
         Simplify using the Ramer-Douglas-Peucker algorithm: http://en.wikipedia.org/wiki/Ramer-Douglas-Peucker_algorithm
@@ -1287,18 +1290,46 @@ class GPX:
         self.max_longitude = None
 
     def track2trip(self, split_on_new_track=True, split_on_new_track_interval=10, min_sameness_distance=10, min_sameness_interval=2):
+        #JOIN
         segment_list = []
-        final_list = []
-        first_point = 0
         for track in self.tracks:
-            for segment in track.segments:
-                for point_no in range(len(segment.points[1:-1])):
-                    if segment.points[point_no+1].time - segment.points[point_no].time > datetime.timedelta(minutes=split_on_new_track_interval) and \
-                        segment.points[point_no].distance_2d(segment.points[point_no+1]) < min_sameness_distance:
-                        segment_list.append(segment.split(first_point, point_no))
-                        first_point = point_no
+            print len(track.segments)
+            if len(track.segments) > 1:
+                for seg_no in range(len(track.segments[1:-1])):
 
-        segment_list.append(segment.split(first_point, -1))
+                    first_segment = track.segments[0].points[-1]
+                    print len (track.segments[0].points)
+                    second_segment = track.segments[seg_no+1].points[0]
+
+                    lat_diff = second_segment.latitude - first_segment.latitude
+                    lon_diff = second_segment.longitude - first_segment.longitude
+
+                    lat_step = lat_diff / (1 + 1)
+                    lon_step = lon_diff / (1 + 1)
+
+                    for i in range(1, 1 + 1):
+                        sub_lat = first_segment.latitude + (i * lat_step)
+                        sub_lon = first_segment.longitude + (i * lon_step)
+                        track.segments[0].points.append(GPXTrackPoint(sub_lat,sub_lon,None,first_segment.time))
+
+                    track.segments[0].points += track.segments[seg_no].points
+                    print seg_no
+                track.segments[0].points += track.segments[-1].points
+
+                #print track.segments[0]
+
+        #SEPARATE
+        first_point = 0
+
+        for point_no in range(len(track.segments[0].points[1:-1])):
+            if track.segments[0].points[point_no+1].time - track.segments[0].points[point_no].time > datetime.timedelta(minutes=split_on_new_track_interval) and \
+                track.segments[0].points[point_no].distance_2d(track.segments[0].points[point_no+1]) < min_sameness_distance:
+                new_segment = track.segments[0].split(first_point, point_no)
+                if(new_segment.length_2d() > 50):
+                    segment_list.append(new_segment)
+                    first_point = point_no
+
+        segment_list.append(track.segments[0].split(first_point, -1))
 
         return segment_list
 
