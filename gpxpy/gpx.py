@@ -1292,31 +1292,40 @@ class GPX:
     def track2trip(self, split_on_new_track=True, split_on_new_track_interval=10, min_sameness_distance=10, min_sameness_interval=2):
         #JOIN
         segment_list = []
+
         for track in self.tracks:
-            print len(track.segments)
             if len(track.segments) > 1:
-                for seg_no in range(len(track.segments[1:-1])):
+                n_tracks = len(track.segments)
+                for seg_no in range(1,len(track.segments)-1):
 
-                    first_segment = track.segments[0].points[-1]
-                    print len (track.segments[0].points)
-                    second_segment = track.segments[seg_no+1].points[0]
+                    first_segment = track.segments[0].points[-1] #initial segment
+                    second_segment = track.segments[seg_no].points[0] #segment in front
 
-                    lat_diff = second_segment.latitude - first_segment.latitude
+                    distance = track.segments[0].points[-1].distance_2d(track.segments[seg_no].points[0]) #to be used as a number of points
+                    count = distance / 100.0
+
+                    lat_diff = second_segment.latitude - first_segment.latitude #begins interpolation
                     lon_diff = second_segment.longitude - first_segment.longitude
+                    time_diff = first_segment.time - second_segment.time
+                    print "diff", lat_diff, lon_diff
+                    lat_step = lat_diff / (1.0 + int(count))
+                    lon_step = lon_diff / (1.0 + int(count))
+                    time_step = time_diff.total_seconds() / (1.0 + int(count))
+                    print "step", lat_step, lon_step
+                    time = first_segment.time
 
-                    lat_step = lat_diff / (1 + 1)
-                    lon_step = lon_diff / (1 + 1)
-
-                    for i in range(1, 1 + 1):
+                    from datetime import timedelta
+                    for i in range(1, 1 + int(count)):
                         sub_lat = first_segment.latitude + (i * lat_step)
                         sub_lon = first_segment.longitude + (i * lon_step)
-                        track.segments[0].points.append(GPXTrackPoint(sub_lat,sub_lon,None,first_segment.time))
-
+                        time -= timedelta(seconds=time_step)
+                        print "sub", sub_lat, sub_lon, time
+                        #print time
+                        track.segments[0].points.append(GPXTrackPoint(sub_lat,sub_lon,first_segment.elevation, time)) #ends interpolation #elevation is the same as the first segment. Only latitude, longitude and time are interpolated
+                    #print "oooooo"
                     track.segments[0].points += track.segments[seg_no].points
-                    print seg_no
-                track.segments[0].points += track.segments[-1].points
 
-                #print track.segments[0]
+                track.segments[0].points += track.segments[-1].points
 
         #SEPARATE
         first_point = 0

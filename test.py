@@ -16,8 +16,8 @@ if __name__ == '__main__':
 
     for segment in gpx_list:
 
-        segment.smooth(True, 1.5, 1.05, 0)
-        segment.simplify(10)
+        #segment.smooth(True, 1.5, 1.05, 0)
+        #segment.simplify(10)
 
         gpx = gpxpy.gpx.GPX()
 
