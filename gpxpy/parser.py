@@ -93,7 +93,8 @@ class LXMLParser:
     """
 
     def __init__(self, xml):
-        assert mod_etree
+        if not mod_etree:
+            raise Exception('Cannot use LXMLParser without lxml installed')
 
         if mod_utils.PYTHON_VERSION[0] == '3':
             # In python 3 all strings are unicode and for some reason lxml
@@ -127,9 +128,13 @@ class LXMLParser:
         return children[0]
 
     def get_node_name(self, node):
-        if '}' in node.tag:
-            return node.tag.split('}')[1]
-        return node.tag
+        if callable(node.tag):
+            tag = str(node.tag())
+        else:
+            tag = str(node.tag)
+        if '}' in tag:
+            return tag.split('}')[1]
+        return tag
 
     def get_children(self, node=None):
         if node is None:
@@ -183,7 +188,6 @@ class GPXParser:
     def parse(self):
         """
         Parses the XML file and returns a GPX object.
-
         It will throw GPXXMLSyntaxException if the XML file is invalid or
         GPXException if the XML file is valid but something is wrong with the
         GPX data.
@@ -470,27 +474,3 @@ class GPXParser:
                                      position_dilution=pdop, speed=speed, name=name)
 
 
-if __name__ == '__main__':
-
-    file_name = '../test_files/2760.gpx'
-    #file_name = 'test_files/blue_hills.gpx'
-    #file_name = 'test_files/test.gpx'
-    file = open(file_name, 'r')
-    gpx_xml = file.read()
-    file.close()
-
-    parser = GPXParser(gpx_xml)
-    gpx = parser.parse()
-
-    print(gpx.to_xml())
-
-    print('TRACKS:')
-    for track in gpx.tracks:
-        print('name%s, 2d:%s, 3d:%s' % (track.name, track.length_2d(), track.length_3d()))
-        print('\tTRACK SEGMENTS:')
-        for track_segment in track.segments:
-            print('\t2d:%s, 3d:%s' % (track_segment.length_2d(), track_segment.length_3d()))
-
-    print('ROUTES:')
-    for route in gpx.routes:
-        print(route.name)
