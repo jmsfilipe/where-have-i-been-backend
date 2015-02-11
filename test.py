@@ -8,6 +8,7 @@ if __name__ == '__main__':
     import ppygis
     import os
     from time import mktime
+    import StringIO
 
     directory_name = 'HOJE/'
     saving_name = 'save/'
@@ -60,7 +61,8 @@ if __name__ == '__main__':
         print "I am unable to connect to the database."
 
     cur = conn.cursor()
-    cur.execute("CREATE TABLE IF NOT EXISTS gtest ( ID integer, NAME text , geom GEOMETRY(LineStringZM, 4326))")
+    cur.execute("CREATE TABLE IF NOT EXISTS gtest (geom GEOMETRY(LineStringZM, 4326) NOT NULL)")
+    conn.commit()
 
     for entry in glob.glob(saving_directory + "*.gpx"):
         file = open(entry, 'rb')
@@ -69,17 +71,29 @@ if __name__ == '__main__':
 
         gpx = gpxpy.parse(gpx_xml)
 
+        # for track in gpx.tracks:
+        #     for segment in track.segments:
+        #         query = "ST_GeomFromText('LINESTRINGZM("
+        #         for point in segment.points:
+        #             insert_time = mktime(point.time.timetuple())
+        #             query += str(point.latitude) + " " + str(point.longitude) + " " + str(point.elevation) + " " + str(mktime(point.time.timetuple())) + ", "
+        #         query = query[:-2]
+        #         query += ")', 4326)"
+        #         query = "INSERT INTO gtest(id, name, geom) VALUES(2, 'nome'," + query + ")"
+        #         print query
+        #         cur.execute(query)
+
         for track in gpx.tracks:
+            buffer = StringIO.StringIO()
             for segment in track.segments:
-                query = "ST_GeomFromText('LINESTRINGZM("
+                points=[]
                 for point in segment.points:
-                    insert_time = mktime(point.time.timetuple())
-                    query += str(point.latitude) + " " + str(point.longitude) + " " + str(point.elevation) + " " + str(mktime(point.time.timetuple())) + ", "
-                query = query[:-2]
-                query += ")', 4326)"
-                query = "INSERT INTO gtest(id, name, geom) VALUES(2, 'nome'," + query + ")"
-                print query
-                cur.execute(query)
+                    points.append(ppygis.Point(point.latitude, point.longitude, point.elevation, mktime(point.time.timetuple()), srid=4326))
+
+                buffer.write(ppygis.LineString((points), 4326).write_ewkb() + '\n')
+                buffer.seek(0)
+
+        cur.copy_from(buffer, 'gtest')
 
         conn.commit()
 
