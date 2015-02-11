@@ -30,7 +30,7 @@ import datetime
 
 from . import utils as mod_utils
 from . import geo as mod_geo
-
+from datetime import timedelta
 # GPX date format to be used when writing the GPX output:
 DATE_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
@@ -769,21 +769,29 @@ class GPXTrackSegment:
     def __init__(self, points=None):
         self.points = points if points else []
 
-    def simplify(self, max_distance=None):
+    def simplify(self, max_distance=None, max_time=None):
         """
         Simplify using the Ramer-Douglas-Peucker algorithm: http://en.wikipedia.org/wiki/Ramer-Douglas-Peucker_algorithm
         """
         if not max_distance:
             max_distance = 10
 
-        self.points = mod_geo.simplify_polyline(self.points, max_distance)
+        self.points = mod_geo.simplify_polyline(self.points, max_distance, max_time)
 
-    def reduce_points(self, min_distance):
+    def simplify2(self, max_points):
+        """
+        Simplify using the Ramer-Douglas-Peucker algorithm: http://en.wikipedia.org/wiki/Ramer-Douglas-Peucker_algorithm
+        """
+        self.points = mod_geo.simplify2(self.points, max_points)
+
+    def reduce_points(self, min_distance, min_time):
         reduced_points = []
         for point in self.points:
             if reduced_points:
                 distance = reduced_points[-1].distance_3d(point)
-                if distance >= min_distance:
+                time = point.time-reduced_points[-1].time
+                #print time
+                if distance >= min_distance or time >= timedelta(seconds=min_time):
                     reduced_points.append(point)
             else:
                 # Leave first point:
@@ -1256,6 +1264,9 @@ class GPXTrackSegment:
     def clone(self):
         return mod_copy.deepcopy(self)
 
+    def __len__(self):
+        return len(self.points)
+
 
 class GPX:
     def __init__(self, waypoints=None, routes=None, tracks=None):
@@ -1307,22 +1318,20 @@ class GPX:
                     lat_diff = second_segment.latitude - first_segment.latitude #begins interpolation
                     lon_diff = second_segment.longitude - first_segment.longitude
                     time_diff = first_segment.time - second_segment.time
-                    print "diff", lat_diff, lon_diff
+
                     lat_step = lat_diff / (1.0 + int(count))
                     lon_step = lon_diff / (1.0 + int(count))
                     time_step = time_diff.total_seconds() / (1.0 + int(count))
-                    print "step", lat_step, lon_step
+
                     time = first_segment.time
 
-                    from datetime import timedelta
                     for i in range(1, 1 + int(count)):
                         sub_lat = first_segment.latitude + (i * lat_step)
                         sub_lon = first_segment.longitude + (i * lon_step)
                         time -= timedelta(seconds=time_step)
-                        print "sub", sub_lat, sub_lon, time
-                        #print time
+
                         track.segments[0].points.append(GPXTrackPoint(sub_lat,sub_lon,first_segment.elevation, time)) #ends interpolation #elevation is the same as the first segment. Only latitude, longitude and time are interpolated
-                    #print "oooooo"
+
                     track.segments[0].points += track.segments[seg_no].points
 
                 track.segments[0].points += track.segments[-1].points
@@ -1331,14 +1340,17 @@ class GPX:
         first_point = 0
 
         for point_no in range(len(track.segments[0].points[1:-1])):
-            if track.segments[0].points[point_no+1].time - track.segments[0].points[point_no].time > datetime.timedelta(minutes=split_on_new_track_interval) and \
+            if track.segments[0].points[point_no+1].time - track.segments[0].points[point_no].time > datetime.timedelta(seconds=split_on_new_track_interval) and \
                 track.segments[0].points[point_no].distance_2d(track.segments[0].points[point_no+1]) < min_sameness_distance:
                 new_segment = track.segments[0].split(first_point, point_no)
-                if(new_segment.length_2d() > 50):
+                if(new_segment.length_2d() > min_sameness_distance and new_segment.points[-1].time - new_segment.points[0].time > timedelta(seconds=split_on_new_track_interval)):
                     segment_list.append(new_segment)
                     first_point = point_no
 
-        segment_list.append(track.segments[0].split(first_point, -1))
+        #print segment_list
+        last_segment = track.segments[0].split(first_point, -1)
+        if(last_segment.length_2d() > min_sameness_distance and last_segment.points[-1].time - last_segment.points[0].time > timedelta(seconds=split_on_new_track_interval)):
+            segment_list.append(last_segment)
 
         return segment_list
 

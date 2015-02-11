@@ -22,7 +22,7 @@ import datetime
 
 from . import utils as mod_utils
 from math import sqrt
-
+from datetime import timedelta
 # Generic geo related function and class(es)
 
 # One degree in meters:
@@ -227,7 +227,7 @@ def distance_from_line(point, line_point_1, line_point_2):
 
     s = (a + b + c) / 2.
 
-    return 2. * mod_math.sqrt(abs(s * (s - a) * (s - b) * (s - c))) / a
+    return 2. * mod_math.sqrt(abs(s * (s - a) * (s - b) * (s - c))) / a, line_point_2.time-line_point_1.time
 
 
 def get_line_equation_coefficients(location1, location2):
@@ -245,8 +245,41 @@ def get_line_equation_coefficients(location1, location2):
         b = location1.latitude - location1.longitude * a
         return float(1), float(-a), float(-b)
 
+def simplify2(points, max_points):
+    final_points = []
+    final_points.append(points[0])
+    final_points.append(points[-1])
+    i = 0
+    j = len(points) - 1
+    points_selected = 2
+    m= 0
 
-def simplify_polyline(points, max_distance):
+    while True:
+        d_max = 0
+        for n in range(i+1,j-1):
+            print "n"
+            d = distance_from_line(points[n], points[i], points[j])
+            if(d > d_max):
+                d_max = d
+                m = n
+
+        final_points.append(points[m])
+        final_points.sort()
+        points_selected = points_selected + 1
+        max_length = 0
+
+        for w in range(m,len(final_points)):
+            poly_length = final_points[m].distance_2d(final_points[m+1])
+            if(poly_length > max_length):
+                max_length = poly_length
+                i = final_points[m]
+                j = final_points[m+1]
+
+        if points_selected >= max_points:
+            return final_points
+
+
+def simplify_polyline(points, max_distance, max_time):
     """Does Ramer-Douglas-Peucker algorithm for simplification of polyline """
 
     if len(points) < 3:
@@ -262,24 +295,29 @@ def simplify_polyline(points, max_distance):
     # the points are too distant, but it should be good enough for most use
     # cases...
     a, b, c = get_line_equation_coefficients(begin, end)
+    t = end.time-begin.time
 
     tmp_max_distance = -1000000
     tmp_max_distance_position = None
+
     for point_no in range(len(points[1:-1])):
         point = points[point_no]
         d = abs(a * point.latitude + b * point.longitude + c)
+
         if d > tmp_max_distance:
+
             tmp_max_distance = d
             tmp_max_distance_position = point_no
 
     # Now that we have the most distance point, compute its real distance:
-    real_max_distance = distance_from_line(points[tmp_max_distance_position], begin, end)
+    real_max_distance, real_time = distance_from_line(points[tmp_max_distance_position], begin, end)
+    #print real_time
 
-    if real_max_distance < max_distance and points[point_no+1].time - points[point_no].time < datetime.timedelta(seconds=30):
+    if real_max_distance < max_distance or real_time < timedelta(seconds=max_time):
         return [begin, end]
 
-    return (simplify_polyline(points[:tmp_max_distance_position + 2], max_distance) +
-            simplify_polyline(points[tmp_max_distance_position + 1:], max_distance)[1:])
+    return (simplify_polyline(points[:tmp_max_distance_position + 2], max_distance, max_time) +
+            simplify_polyline(points[tmp_max_distance_position + 1:], max_distance, max_time)[1:])
 
 
 class Location:
