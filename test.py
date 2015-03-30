@@ -1,5 +1,8 @@
 __author__ = 'jmsfilipe'
 
+def getKey(customobj):
+    return customobj.getKey()
+
 if __name__ == '__main__':
     import gpxpy
     import gpxpy.gpx
@@ -9,6 +12,12 @@ if __name__ == '__main__':
     import os
     from time import mktime
     import StringIO
+    import datetime
+    import gpxpy
+    import gpxpy.gpx
+    import glob
+    import os
+    import time
 
     directory_name = 'HOJE/'
     saving_name = 'save/'
@@ -17,86 +26,36 @@ if __name__ == '__main__':
 
     if not os.path.exists(saving_directory):
         os.makedirs(saving_directory)
-
-    for entry in glob.glob(directory_name + "*.gpx"):
+    current_day = ""
+    for entry in sorted(glob.glob(directory_name + "*.gpx")):
+        name = 0
         file = open(entry, 'rb')
         gpx_xml = file.read()
         file.close()
 
         gpx = gpxpy.parse(gpx_xml)
-
         gpx_list = gpx.track2trip(None, 120, 200, None)
 
-        name = 0
-
-
-
-        for segment in gpx_list:
-
+        for segment in sorted(gpx_list):
+            if segment.points[0].time.strftime("%Y-%m-%d") != current_day:
+                name = 0
+            else:
+                name += 1
             segment.smooth(True, 1.5, 1.05, 0)
             segment.simplify(0.01,5) #RDP
             segment.reduce_points(10, 5)
 
-            gpx = gpxpy.gpx.GPX()
+            gpx_write = gpxpy.gpx.GPX()
 
             # Create first track in our GPX:
             gpx_track = gpxpy.gpx.GPXTrack()
-            gpx.tracks.append(gpx_track)
 
             # Create first segment in our GPX track:
             gpx_segment = gpxpy.gpx.GPXTrackSegment()
             gpx_track.segments.append(segment)
+            gpx_write.tracks.append(gpx_track)
 
-            filename= os.path.basename(entry)
-
-            fo = open("{}-part{}.gpx".format(os.path.join(saving_directory, filename.replace(".gpx","")),name), "wb")
-            fo.write(gpx.to_xml())
+            current_day =  segment.points[0].time.strftime("%Y-%m-%d")
+            fo = open("{}-part{}.gpx".format(os.path.join(saving_directory,current_day),name), "wb")
+            fo.write(gpx_write.to_xml())
             fo.close()
-            name += 1
-
-    #DATABASE
-    try:
-        conn=psycopg2.connect("host=localhost dbname=postgres user=postgres password=postgres")
-    except:
-        print "I am unable to connect to the database."
-
-    cur = conn.cursor()
-    cur.execute("CREATE TABLE IF NOT EXISTS gtest (geom GEOMETRY(LineStringZM, 4326) NOT NULL)")
-    conn.commit()
-
-    for entry in glob.glob(saving_directory + "*.gpx"):
-        file = open(entry, 'rb')
-        gpx_xml = file.read()
-        file.close()
-
-        gpx = gpxpy.parse(gpx_xml)
-
-        # for track in gpx.tracks:
-        #     for segment in track.segments:
-        #         query = "ST_GeomFromText('LINESTRINGZM("
-        #         for point in segment.points:
-        #             insert_time = mktime(point.time.timetuple())
-        #             query += str(point.latitude) + " " + str(point.longitude) + " " + str(point.elevation) + " " + str(mktime(point.time.timetuple())) + ", "
-        #         query = query[:-2]
-        #         query += ")', 4326)"
-        #         query = "INSERT INTO gtest(id, name, geom) VALUES(2, 'nome'," + query + ")"
-        #         print query
-        #         cur.execute(query)
-
-        for track in gpx.tracks:
-            buffer = StringIO.StringIO()
-            for segment in track.segments:
-                points=[]
-                for point in segment.points:
-                    points.append(ppygis.Point(point.latitude, point.longitude, point.elevation, mktime(point.time.timetuple()), srid=4326))
-
-                buffer.write(ppygis.LineString((points), 4326).write_ewkb() + '\n')
-                buffer.seek(0)
-
-        cur.copy_from(buffer, 'gtest')
-
-        conn.commit()
-
-
-    cur.close()
-    conn.close()

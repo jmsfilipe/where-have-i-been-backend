@@ -311,6 +311,7 @@ def simplify_polyline(points, max_distance, max_time):
 
     # Now that we have the most distance point, compute its real distance:
     real_max_distance, real_time = distance_from_line(points[tmp_max_distance_position], begin, end)
+
     #print real_time
 
     if real_max_distance < max_distance or real_time < timedelta(seconds=max_time):

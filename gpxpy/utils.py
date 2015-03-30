@@ -114,3 +114,13 @@ def make_str(s):
         if isinstance(s, unicode):
             return s.encode("utf-8")
     return str(s)
+
+def neighborhood(iterable):
+    iterator = iter(iterable)
+    prev = None
+    item = iterator.next()  # throws StopIteration if empty.
+    for next in iterator:
+        yield (prev,item,next)
+        prev = item
+        item = next
+    yield (prev,item,next)
