@@ -1348,21 +1348,21 @@ class GPX:
 
         for track in self.tracks:
             first_point = 1
-            if len(track.segments) > 0 and len(track.segments[0].points) > 100 :
+            if len(track.segments) > 0 and len(track.segments[0].points) > 5 :
                 for point_no in range(len(track.segments[0].points[0:-1])):
                     if  track.segments[0].points[point_no+1].time and track.segments[0].points[point_no].time and point_no < len(track.segments[0].points)-1 and track.segments[0].points[point_no+1].time - track.segments[0].points[point_no].time > datetime.timedelta(seconds=split_on_new_track_interval) and \
                         track.segments[0].points[point_no].distance_2d(track.segments[0].points[point_no+1]) < min_sameness_distance:
-                        new_segment = track.segments[0].split(first_point, point_no-1)
-                        if(len(new_segment.points) > 15 and new_segment.length_2d() > min_sameness_distance and new_segment.points[-1].time - new_segment.points[0].time > timedelta(seconds=split_on_new_track_interval)):
-                            segment_list.append(new_segment)
-                            first_point += point_no
-                            del new_segment
+                        if(point_no != 0):
+                            new_segment = track.segments[0].split(first_point, point_no-1)
+                            if(len(new_segment.points) > 15 and new_segment.length_2d() > min_sameness_distance and new_segment.points[-1].time - new_segment.points[0].time > timedelta(seconds=split_on_new_track_interval)):
+                                segment_list.append(new_segment)
+                                first_point += point_no
+                                del new_segment
 
                 #print segment_list
                 last_segment = track.segments[0].split(first_point, -1)
                 if(last_segment.length_2d() > min_sameness_distance and last_segment.points[-1].time - last_segment.points[0].time > timedelta(seconds=split_on_new_track_interval)):
                     segment_list.append(last_segment)
-
         return segment_list
 
 

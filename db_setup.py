@@ -19,10 +19,12 @@ def init_database():
 
     cur = conn.cursor()
     cur.execute("CREATE TABLE IF NOT EXISTS trips (trip_id SERIAL PRIMARY KEY, start_date TIMESTAMP NOT NULL, end_date TIMESTAMP NOT NULL)")
-    cur.execute("CREATE TABLE IF NOT EXISTS linestrings (trip_id SERIAL REFERENCES trips(trip_id), geom GEOMETRY(LineStringZ, 4326) NOT NULL)")
-    cur.execute("CREATE TABLE IF NOT EXISTS trip_points (point GEOMETRY(PointZ, 4326) NOT NULL, timestamp TIMESTAMP NOT NULL)")
-    cur.execute("CREATE TABLE IF NOT EXISTS places (description TEXT PRIMARY KEY, point GEOMETRY(POINTZ, 4326) NOT NULL)")
+    cur.execute("CREATE TABLE IF NOT EXISTS linestrings (trip_id SERIAL REFERENCES trips(trip_id), geom GEOGRAPHY(LineStringZ, 4326) NOT NULL)")
+    cur.execute("CREATE TABLE IF NOT EXISTS trip_points (point GEOGRAPHY(PointZ, 4326) NOT NULL, timestamp TIMESTAMP NOT NULL)")
+    cur.execute("CREATE TABLE IF NOT EXISTS places (description TEXT PRIMARY KEY, point GEOGRAPHY(POINTZ, 4326) NOT NULL)")
     cur.execute("CREATE TABLE IF NOT EXISTS stays (stay_id TEXT, start_date TIMESTAMP NOT NULL, end_date TIMESTAMP NOT NULL)")
+    cur.execute("CREATE TABLE IF NOT EXISTS colors (category TEXT, color TEXT)")
+    cur.execute("CREATE TABLE IF NOT EXISTS categories (category TEXT, location TEXT[])")
     conn.commit()
 
 def insert_trips_database():
@@ -57,7 +59,7 @@ def insert_trips_database():
                 for segment in track.segments:
                     points=[]
                     for point in segment.points:
-                        points.append(ppygis.Point(point.latitude, point.longitude, point.elevation, srid=4326))
+                        points.append(ppygis.Point(point.longitude, point.latitude, point.elevation, srid=4326))
 
                     cur.execute("INSERT INTO linestrings(geom) VALUES('" + ppygis.LineString((points), 4326).write_ewkb() +"')")
             conn.commit()
@@ -106,7 +108,7 @@ def insert_place_database(location, point):
         print "I am unable to connect to the database."
 
     cur = conn.cursor()
-    point = ppygis.Point(point[0], point[1], point[2], srid=4326).write_ewkb()
+    point = ppygis.Point(point[1], point[0], point[2], srid=4326).write_ewkb()
     query = "UPDATE places SET description='{location}', point='{point}' WHERE description='{location}';\
         INSERT INTO places(description, point)\
         SELECT '{location}', '{point}'\
