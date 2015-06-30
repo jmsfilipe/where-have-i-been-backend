@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1" version="1.1" creator="GiSTEQ Phototrackr" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+  <trk>
+    <name>Track</name>
+    <type>Phototrackr Log File</type>
+    <trkseg>
+      <trkpt lat="38.73520000" lon="-9.14039833">
+        <ele>122</ele>
+        <time>2011-01-04T13:33:21Z</time>
+      </trkpt>
+    </trkseg>
+    <trkseg>
+      <trkpt lat="38.73543833" lon="-9.14062333">
+        <ele>189</ele>
+        <time>2011-01-04T13:33:31Z</time>
+      </trkpt>
+      <trkpt lat="38.73552667" lon="-9.14057500">
+        <ele>191</ele>
+        <time>2011-01-04T13:33:41Z</time>
+      </trkpt>
+      <trkpt lat="38.73567667" lon="-9.14055000">
+        <ele>194</ele>
+        <time>2011-01-04T13:33:51Z</time>
+      </trkpt>
+      <trkpt lat="38.73577167" lon="-9.14052333">
+        <ele>193</ele>
+        <time>2011-01-04T13:34:02Z</time>
+      </trkpt>
+      <trkpt lat="38.73595500" lon="-9.14049333">
+        <ele>192</ele>
+        <time>2011-01-04T13:34:12Z</time>
+      </trkpt>
+      <trkpt lat="38.73602167" lon="-9.14048333">
+        <ele>190</ele>
+        <time>2011-01-04T13:34:22Z</time>
+      </trkpt>
+      <trkpt lat="38.73608333" lon="-9.14048667">
+        <ele>188</ele>
+        <time>2011-01-04T13:34:32Z</time>
+      </trkpt>
+      <trkpt lat="38.73617667" lon="-9.14041667">
+        <ele>178</ele>
+        <time>2011-01-04T13:34:42Z</time>
+      </trkpt>
+      <trkpt lat="38.73628000" lon="-9.14040500">
+        <ele>167</ele>
+        <time>2011-01-04T13:34:52Z</time>
+      </trkpt>
+      <trkpt lat="38.73637500" lon="-9.14040667">
+        <ele>159</ele>
+        <time>2011-01-04T13:35:02Z</time>
+      </trkpt>
+      <trkpt lat="38.73640667" lon="-9.14038500">
+        <ele>157</ele>
+        <time>2011-01-04T13:35:12Z</time>
+      </trkpt>
+    </trkseg>
+  </trk>
+</gpx>

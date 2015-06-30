@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1" version="1.1" creator="GiSTEQ Phototrackr" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+  <trk>
+    <name>Track</name>
+    <type>Phototrackr Log File</type>
+    <trkseg>
+      <trkpt lat="38.72953500" lon="-9.13784833">
+        <ele>45</ele>
+        <time>2011-01-03T17:48:10Z</time>
+      </trkpt>
+    </trkseg>
+    <trkseg>
+      <trkpt lat="38.73028333" lon="-9.13961833">
+        <ele>26</ele>
+        <time>2011-01-03T17:48:20Z</time>
+      </trkpt>
+      <trkpt lat="38.73042833" lon="-9.13966833">
+        <ele>45</ele>
+        <time>2011-01-03T17:48:30Z</time>
+      </trkpt>
+      <trkpt lat="38.73052500" lon="-9.13941000">
+        <ele>78</ele>
+        <time>2011-01-03T17:48:40Z</time>
+      </trkpt>
+      <trkpt lat="38.73044000" lon="-9.13916500">
+        <ele>69</ele>
+        <time>2011-01-03T17:48:51Z</time>
+      </trkpt>
+      <trkpt lat="38.73054833" lon="-9.13886000">
+        <ele>61</ele>
+        <time>2011-01-03T17:49:01Z</time>
+      </trkpt>
+      <trkpt lat="38.73070500" lon="-9.13859500">
+        <ele>60</ele>
+        <time>2011-01-03T17:49:11Z</time>
+      </trkpt>
+      <trkpt lat="38.73055000" lon="-9.13850167">
+        <ele>64</ele>
+        <time>2011-01-03T17:49:21Z</time>
+      </trkpt>
+      <trkpt lat="38.73050667" lon="-9.13832667">
+        <ele>62</ele>
+        <time>2011-01-03T17:49:31Z</time>
+      </trkpt>
+      <trkpt lat="38.73043500" lon="-9.13813000">
+        <ele>62</ele>
+        <time>2011-01-03T17:49:41Z</time>
+      </trkpt>
+      <trkpt lat="38.73046667" lon="-9.13796000">
+        <ele>60</ele>
+        <time>2011-01-03T17:49:51Z</time>
+      </trkpt>
+      <trkpt lat="38.73064833" lon="-9.13765333">
+        <ele>53</ele>
+        <time>2011-01-03T17:50:01Z</time>
+      </trkpt>
+      <trkpt lat="38.73067000" lon="-9.13754167">
+        <ele>55</ele>
+        <time>2011-01-03T17:50:11Z</time>
+      </trkpt>
+      <trkpt lat="38.73070667" lon="-9.13743500">
+        <ele>53</ele>
+        <time>2011-01-03T17:50:21Z</time>
+      </trkpt>
+      <trkpt lat="38.73079667" lon="-9.13731500">
+        <ele>51</ele>
+        <time>2011-01-03T17:50:31Z</time>
+      </trkpt>
+      <trkpt lat="38.73084167" lon="-9.13724333">
+        <ele>51</ele>
+        <time>2011-01-03T17:50:41Z</time>
+      </trkpt>
+    </trkseg>
+  </trk>
+</gpx>

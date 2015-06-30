@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1" version="1.1" creator="GiSTEQ Phototrackr" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+  <trk>
+    <name>Track</name>
+    <type>Phototrackr Log File</type>
+    <trkseg>
+      <trkpt lat="38.73073500" lon="-9.13888333">
+        <ele>100</ele>
+        <time>2011-01-03T17:59:43Z</time>
+      </trkpt>
+    </trkseg>
+    <trkseg>
+      <trkpt lat="38.73076000" lon="-9.13900000">
+        <ele>99</ele>
+        <time>2011-01-03T17:59:53Z</time>
+      </trkpt>
+      <trkpt lat="38.73084167" lon="-9.13889667">
+        <ele>178</ele>
+        <time>2011-01-03T18:00:03Z</time>
+      </trkpt>
+      <trkpt lat="38.73085000" lon="-9.13906333">
+        <ele>163</ele>
+        <time>2011-01-03T18:00:13Z</time>
+      </trkpt>
+      <trkpt lat="38.73065667" lon="-9.13914333">
+        <ele>155</ele>
+        <time>2011-01-03T18:00:24Z</time>
+      </trkpt>
+      <trkpt lat="38.73051833" lon="-9.13913167">
+        <ele>150</ele>
+        <time>2011-01-03T18:00:34Z</time>
+      </trkpt>
+      <trkpt lat="38.73008833" lon="-9.13932833">
+        <ele>142</ele>
+        <time>2011-01-03T18:01:01Z</time>
+      </trkpt>
+      <trkpt lat="38.72995500" lon="-9.13925167">
+        <ele>136</ele>
+        <time>2011-01-03T18:01:11Z</time>
+      </trkpt>
+      <trkpt lat="38.72990833" lon="-9.13929167">
+        <ele>119</ele>
+        <time>2011-01-03T18:01:21Z</time>
+      </trkpt>
+      <trkpt lat="38.72986333" lon="-9.13942833">
+        <ele>114</ele>
+        <time>2011-01-03T18:01:31Z</time>
+      </trkpt>
+      <trkpt lat="38.72985500" lon="-9.13966833">
+        <ele>109</ele>
+        <time>2011-01-03T18:01:41Z</time>
+      </trkpt>
+    </trkseg>
+  </trk>
+</gpx>

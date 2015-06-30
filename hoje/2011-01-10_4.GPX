@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1" version="1.1" creator="GiSTEQ Phototrackr" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+  <trk>
+    <name>Track</name>
+    <type>Phototrackr Log File</type>
+    <trkseg>
+      <trkpt lat="38.72969167" lon="-9.13984667">
+        <ele>99</ele>
+        <time>2011-01-10T17:06:49Z</time>
+      </trkpt>
+    </trkseg>
+    <trkseg>
+      <trkpt lat="38.72971167" lon="-9.13981167">
+        <ele>94</ele>
+        <time>2011-01-10T17:06:59Z</time>
+      </trkpt>
+      <trkpt lat="38.72971500" lon="-9.13968333">
+        <ele>95</ele>
+        <time>2011-01-10T17:07:11Z</time>
+      </trkpt>
+      <trkpt lat="38.72969167" lon="-9.13956667">
+        <ele>97</ele>
+        <time>2011-01-10T17:07:21Z</time>
+      </trkpt>
+    </trkseg>
+  </trk>
+</gpx>
