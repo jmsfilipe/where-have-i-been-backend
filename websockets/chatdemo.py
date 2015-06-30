@@ -118,7 +118,7 @@ def get_semantic_file_from_string(content): #gets a semantic string and resutnrs
         if len(line)==0 or line[0]=="*" or line[0] == '\n':
             pass
         elif validate(line):
-            curday = Day(line)
+            curday = Day(get_date(line))
             file.add_day(curday)
         elif get_gmt(line):
             global curtimezone
@@ -137,13 +137,19 @@ def get_semantic_file_from_string(content): #gets a semantic string and resutnrs
 
 import datetime
 def validate(date_text):
+    if date_text[:2] == "--":
+        date_text = date_text[2:]
+    print date_text
     try:
-        datetime.datetime.strptime(date_text, '%Y_%m_%d').date()
-        return True
+        return datetime.datetime.strptime(date_text, '%Y_%m_%d').date()
     except Exception, e:
         return False
 
-
+def get_date(date_text):
+    if date_text[:2] == "--":
+        return date_text[2:]
+    else:
+        return date_text
 def main():
     tornado.options.parse_command_line()
     app = Application()

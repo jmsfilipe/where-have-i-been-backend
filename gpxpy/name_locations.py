@@ -106,7 +106,7 @@ class Entry:
             curtimezone = int(self.timezone)
             return tz + "\n" + str(minutes_to_military(self.start_date)) + "-" + str(minutes_to_military(self.end_date)) + ":" + str(self.location)
         else:
-            return str(minutes_to_military(self.start_date)) + "-" + str(minutes_to_military(self.end_date)) + ":" + str(self.location)
+            return str(minutes_to_military(self.start_date)) + "-" + str(minutes_to_military(self.end_date)) + ":" + self.location.encode('utf-8')
 
     def start_gmt(self):
         x = self.start_date-self.timezone*60
@@ -275,10 +275,13 @@ def filter_locs(locs,step=0):
         return [0,0], near, far
 
 def average_coords(coords):
+
     lat = reduce((lambda x,y:x+y),[x.latitude for x in coords])/len(coords)
     lon = reduce((lambda x,y:x+y),[x.longitude for x in coords])/len(coords)
-    ele = reduce((lambda x,y:x+y),[x.elevation for x in coords])/len(coords)
+
+    ele = reduce((lambda x,y:x+y),[x.elevation if x.elevation else 0 for x in coords])/len(coords)
     return [lat,lon,ele]
+
 
 
 def stdev_coords(coords,avg):
@@ -403,12 +406,14 @@ def check_gpx_changes(old_content_obj, new_content_obj):
 
     for old_day, new_day in zip(old_content_obj.days, new_content_obj.days):
         if len(old_day.entries) > len(new_day.entries): #delete gpx
+            print "FIRST PROB"
             for (old_entry_prev, old_entry, old_entry_next), (new_entry_prev, new_entry, new_entry_next) in zip(neighborhood(old_day.entries), neighborhood(new_day.entries)):
                 if old_entry.start_date == new_entry.start_date and old_entry.end_date != new_entry.end_date:
                     join_gpx(old_entry.end_date, old_entry_next.end_date)
                 elif old_entry.start_date == new_entry.start_date and old_entry.end_date == new_entry.end_date and old_entry_next.start_date != new_entry_next.start_date and old_entry_next.end_date != new_entry_next.end_date:
                     remove_gpx_file(old_day.date, old_entry.end_date)
         elif len(old_day.entries) < len(new_day.entries): #split gpx
+            print "SECOND PROB"
             for old_entry, new_entry in zip(old_day.entries, new_day.entries):
                 if old_entry.end_date != new_entry.end_date and old_entry.start_date == new_entry.start_date:
                     #TODO
@@ -422,12 +427,12 @@ def neighborhood(iterable):
         yield (prev,item,next)
         prev = item
         item = next
-    yield (prev,item,next)
+    yield (prev,item,None)
 
 def join_gpx(first_track_start, second_track_start):
     first_track_start = minutes_to_military(first_track_start)
     second_track_start = minutes_to_military(second_track_start)
-    directory_name = 'HOJE/'
+    directory_name = 'hoje/'
     saving_name = 'save/'
     saving_directory = os.path.join(directory_name, saving_name)
     print "####", first_track_start, second_track_start
@@ -446,11 +451,12 @@ def join_gpx(first_track_start, second_track_start):
         file.close()
         gpx = gpxpy.parse(gpx_xml)
 
-        filename_next = os.path.join(saving_directory, f_next)
-        file_next = open(filename_next, 'rb')
-        gpx_xml_next = file_next.read()
-        file_next.close()
-        gpx_next = gpxpy.parse(gpx_xml_next)
+        if f_next is not None:
+            filename_next = os.path.join(saving_directory, f_next)
+            file_next = open(filename_next, 'rb')
+            gpx_xml_next = file_next.read()
+            file_next.close()
+            gpx_next = gpxpy.parse(gpx_xml_next)
 
         for track, track_next  in zip(gpx.tracks, gpx_next.tracks):
             for segment, segment_next in zip(track.segments, track_next.segments):
@@ -479,7 +485,7 @@ def join_gpx(first_track_start, second_track_start):
 
 def remove_gpx_file(date, start_time):
     start_time = minutes_to_military(start_time)
-    directory_name = 'HOJE/'
+    directory_name = 'hoje/'
     saving_name = 'save/'
     saving_directory = os.path.join(directory_name, saving_name)
 
@@ -519,7 +525,7 @@ def read_day_tracks(day):
     files = []
     points = []
 
-    directory_name = 'HOJE/'
+    directory_name = 'hoje/'
     saving_name = 'save/'
     saving_directory = os.path.join(directory_name, saving_name)
 
@@ -575,7 +581,10 @@ def gather_locations(days):
                 if cp:
                     res[s.location] = res.get(s.location,[])+[cp]
                 from db_setup import insert_place_database
-                insert_place_database(s.location, average_coords(res[s.location]))
+                try:
+                    insert_place_database(s.location, average_coords(res[s.location]))
+                except KeyError:
+                    pass
 
     f=open("points.dat","w")
     cPickle.dump(days.days[-1].date,f)
@@ -590,6 +599,8 @@ def update_locations(days, last_data, last_date):
     res = last_data
     days.days.sort(lambda x,y: cmp(x.date,y.date))
     for d in days.days:
+        print "aqui", d.date
+        print "ali", last_date
         if datetime.datetime.strptime(d.date, '%Y_%m_%d')>datetime.datetime.strptime(last_date, '%Y_%m_%d'):
             #print d.date,
             points = read_day_tracks(d.date)
@@ -682,7 +693,9 @@ def get_closest_points(points, ts, limit = 60, snap = True, snap_limit = 60):  #
         return before
     #return None
     if (not before) and (not after):
+        print "none"
         return None
+    print [(after[0]+before[0])/2,(after[1]+before[1])/2,(after[2]+before[2])/2]
     return [(after[0]+before[0])/2,(after[1]+before[1])/2,(after[2]+before[2])/2]
 
 

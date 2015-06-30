@@ -115,7 +115,7 @@ def read_days(filename): #reads a semantic file and returns a semantic structure
         if len(line)==0 or line[0]=="*" or line[0] == '\n':
             pass
         elif validate.validate(line):
-            curday = Day(line)
+            curday = Day(validate.get_date(line))
             file.add_day(curday)
         elif get_gmt(line):
             global curtimezone

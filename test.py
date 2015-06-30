@@ -19,7 +19,7 @@ if __name__ == '__main__':
     import os
     import time
 
-    directory_name = 'HOJE/'
+    directory_name = 'hoje/'
     saving_name = 'save/'
     saving_directory = os.path.join(directory_name, saving_name)
     DATE_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
@@ -27,20 +27,22 @@ if __name__ == '__main__':
     if not os.path.exists(saving_directory):
         os.makedirs(saving_directory)
     current_day = ""
-    for entry in sorted(glob.glob(directory_name + "*.gpx")):
+    for entry in sorted(glob.glob(directory_name + "*.[gG][pP][xX]")):
+
         name = 0
         file = open(entry, 'rb')
         gpx_xml = file.read()
         file.close()
 
         gpx = gpxpy.parse(gpx_xml)
-        gpx_list = gpx.track2trip(None, 120, 200, None)
+        gpx_list = gpx.track2trip(True, 60, 100, None)
 
         for segment in sorted(gpx_list):
             if segment.points[0].time.strftime("%Y-%m-%d") != current_day:
                 name = 0
             else:
                 name += 1
+
             segment.smooth(True, 1.5, 1.05, 0)
             segment.simplify(0.01,5) #RDP
             segment.reduce_points(10, 5)

@@ -11,7 +11,7 @@ import gpxpy.semantic_places as semantic_places
 
 if __name__ == '__main__':
 
-    directory_name = 'HOJE/'
+    directory_name = 'hoje/'
     saving_name = 'save/'
     saving_directory = os.path.join(directory_name, saving_name)
 

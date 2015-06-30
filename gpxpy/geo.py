@@ -220,7 +220,7 @@ def distance_from_line(point, line_point_1, line_point_2):
     a = line_point_1.distance_2d(line_point_2)
 
     if a == 0:
-        return line_point_1.distance_2d(point)
+        return line_point_1.distance_2d(point), line_point_2.time-line_point_1.time
 
     b = line_point_1.distance_2d(point)
     c = line_point_2.distance_2d(point)
@@ -309,13 +309,17 @@ def simplify_polyline(points, max_distance, max_time):
             tmp_max_distance = d
             tmp_max_distance_position = point_no
 
+
     # Now that we have the most distance point, compute its real distance:
+
     real_max_distance, real_time = distance_from_line(points[tmp_max_distance_position], begin, end)
 
-    #print real_time
 
+    #print real_time
     if real_max_distance < max_distance or real_time < timedelta(seconds=max_time):
         return [begin, end]
+
+
 
     return (simplify_polyline(points[:tmp_max_distance_position + 2], max_distance, max_time) +
             simplify_polyline(points[tmp_max_distance_position + 1:], max_distance, max_time)[1:])
