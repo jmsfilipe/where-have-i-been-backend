@@ -1,5 +1,10 @@
 __author__ = 'jmsfilipe'
 
+import sys
+
+reload(sys)
+sys.setdefaultencoding('utf8')
+
 import semantic_places
 import gpxpy
 import gpxpy.gpx
@@ -87,7 +92,11 @@ class Entry:
     def __init__(self, start_date, end_date, location, timezone = 0):
         self.start_date = military_to_minutes(start_date)
         self.end_date = military_to_minutes(end_date)
+
         self.location = location
+        if location is None:
+            self.location = "*"
+
         self.timezone = timezone
         if timezone == 0 or timezone == "GMT":
             global curtimezone
@@ -104,9 +113,9 @@ class Entry:
         if self.timezone != curtimezone:
             tz = "GMT"+str("%+d" % (self.timezone))
             curtimezone = int(self.timezone)
-            return tz + "\n" + str(minutes_to_military(self.start_date)) + "-" + str(minutes_to_military(self.end_date)) + ":" + str(self.location)
+            return tz + "\n" + str(minutes_to_military(self.start_date)) + "-" + str(minutes_to_military(self.end_date)) + ":" + self.location
         else:
-            return str(minutes_to_military(self.start_date)) + "-" + str(minutes_to_military(self.end_date)) + ":" + self.location.encode('utf-8')
+            return str(minutes_to_military(self.start_date)) + "-" + str(minutes_to_military(self.end_date)) + ":" + self.location
 
     def start_gmt(self):
         x = self.start_date-self.timezone*60
@@ -200,7 +209,7 @@ def get_semantic_file_with_learning(track_bits, locations):
     return file
 
 def write_odds_ends(track_bits):
-    from db_setup import insert_trips_database, insert_spans_database
+    from db_setup import insert_trips_database, insert_spans_database, insert_trips_temp_database
     locs, state, old_days, new_days = read_all_data(track_bits)
     # if state == "not_first_time":
     #     locations = compute_locations(locs)
@@ -208,6 +217,7 @@ def write_odds_ends(track_bits):
     #     file.to_file("./location_semantics.txt")
 
     check_gpx_changes(old_days, new_days)
+    insert_trips_temp_database()
     insert_trips_database()
     insert_spans_database()
 
@@ -275,7 +285,9 @@ def filter_locs(locs,step=0):
         return [0,0], near, far
 
 def average_coords(coords):
-
+    print "COORDS", coords
+    if coords is None:
+        return None
     lat = reduce((lambda x,y:x+y),[x.latitude for x in coords])/len(coords)
     lon = reduce((lambda x,y:x+y),[x.longitude for x in coords])/len(coords)
 
@@ -416,8 +428,17 @@ def check_gpx_changes(old_content_obj, new_content_obj):
             print "SECOND PROB"
             for old_entry, new_entry in zip(old_day.entries, new_day.entries):
                 if old_entry.end_date != new_entry.end_date and old_entry.start_date == new_entry.start_date:
-                    #TODO
-                    print "You've added more entries. The trip you made on " + new_day.date + " starting at " + str(minutes_to_military(new_entry.end_date)) + " will not have any route associated."
+
+                    end = ""
+                    for prev,item,next in neighborhood(new_day.entries):
+                        end = next.start_date
+                        end_loc = next.location
+                        break
+
+                    from db_setup import insert_empty_trip_database
+                    insert_empty_trip_database(new_day.date, str(minutes_to_military(new_entry.end_date)) , str(minutes_to_military(end)) )
+
+                    print "You've added more entries. The trip you made on " + new_day.date + " starting at " + str(minutes_to_military(new_entry.end_date)) + ", " + new_entry.location + " and ending at " + str(minutes_to_military(end))+ ", "+ end_loc + " will not have any route associated."
 
 def neighborhood(iterable):
     iterator = iter(iterable)
@@ -582,9 +603,11 @@ def gather_locations(days):
                     res[s.location] = res.get(s.location,[])+[cp]
                 from db_setup import insert_place_database
                 try:
-                    insert_place_database(s.location, average_coords(res[s.location]))
+
+                    coords =  average_coords(res[s.location])
+                    insert_place_database(s.location, coords)
                 except KeyError:
-                    pass
+                    insert_place_database(s.location, [0,0,0])
 
     f=open("points.dat","w")
     cPickle.dump(days.days[-1].date,f)
@@ -630,7 +653,7 @@ def update_locations(days, last_data, last_date):
                         res[s.location] = res.get(s.location,[])+[cp]
 
                     from db_setup import insert_place_database
-                    insert_place_database(s.location, average_coords(res[s.location]))
+                    insert_place_database(s.location, average_coords(res[unicode(s.location)]))
 
     f=open("points.dat","w")
     cPickle.dump(days.days[-1].date,f)
@@ -648,11 +671,11 @@ def well_formed_date(day,hour):
     #return parser.parse(d)
 
 def tomorrow(last_date):
-  tmp=datetime(int(last_date[:4]),int(last_date[5:7]), int(last_date[8:10]))+timedelta(days=1)
+  tmp=datetime.datetime(int(last_date[:4]),int(last_date[5:7]), int(last_date[8:10]))+timedelta(days=1)
   return "%4d_%02d_%02d" % (tmp.year,tmp.month,tmp.day)
 
 def yesterday(last_date):
-  tmp=datetime(int(last_date[:4]),int(last_date[5:7]), int(last_date[8:10]))+timedelta(days=-1)
+  tmp=datetime.datetime(int(last_date[:4]),int(last_date[5:7]), int(last_date[8:10]))+timedelta(days=-1)
   return "%4d_%02d_%02d" % (tmp.year,tmp.month,tmp.day)
 
 
@@ -695,8 +718,9 @@ def get_closest_points(points, ts, limit = 60, snap = True, snap_limit = 60):  #
     if (not before) and (not after):
         print "none"
         return None
-    print [(after[0]+before[0])/2,(after[1]+before[1])/2,(after[2]+before[2])/2]
-    return [(after[0]+before[0])/2,(after[1]+before[1])/2,(after[2]+before[2])/2]
+
+    print after, before
+    return geo.Location((after.latitude+before.latitude)/2,(after.longitude+before.longitude)/2,(after.elevation+before.elevation)/2)
 
 
 #   #DATABASE

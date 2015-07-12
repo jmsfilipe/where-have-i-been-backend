@@ -101,13 +101,13 @@ def save_settings(data):
     conn.commit()
 
     for entry in colors:
-        query = "INSERT INTO colors(category, color) VALUES('%s' , '%s')"%(entry, colors[entry])
+        query = "INSERT INTO colors(category, color) VALUES('%s' , '%s')"%(entry[0], entry[1])
         cur = conn.cursor()
         cur.execute(query)
 
     for entry in categories:
         cur = conn.cursor()
-        cur.execute("INSERT INTO categories(category, location) VALUES(%s , %s)" , (entry, categories[entry]))
+        cur.execute("INSERT INTO categories(category, location) VALUES(%s , %s)" , (entry[0], entry[1]))
     conn.commit()
 
 def load_settings():
@@ -152,15 +152,18 @@ def fetch_location_geojson(location):
     " , row_to_json((SELECT l FROM (SELECT description, description) As l " \
       " )) As properties" \
    " FROM places As lg WHERE description = '%s'  ) As f )  As fc " %(location)
+
     try:
         cur = conn.cursor()
         cur.execute(query)
         temp = cur.fetchone()
         temp = temp[0]
+        return json.loads(temp)
     except:
         send_to_all_clients(empty_query())
+        return None
 
-    return json.loads(temp)
+
 
 def entry_map_request(ids):
     locations = {}
@@ -192,10 +195,11 @@ def fetch_geojson(id):
         cur.execute(query)
         temp = cur.fetchone()
         temp = temp[0]
+        return json.loads(temp)
     except:
         send_to_all_clients(empty_query())
+        return None
 
-    return json.loads(temp)
 
 def join_date_time(date, time): #join 01/01/2001 with 01:01 to a  datetime
 
@@ -1595,46 +1599,72 @@ def temporary_fetch_from_db():
     final = []
     global results, conn
     cur = conn.cursor()
-    for item in items:
-        try:
-            cur.execute(item.get_query())
-            temp = cur.fetchall()
-            if temp == []:
-                return ([],[])
 
-            for result in temp:
-                id = result[0]
-                start_date = result[1]
-                end_date = result[2]
+    size = len(items)
+    if size > 1:
+        template = "SELECT %s " \
+                   " FROM (%s) q1 INNER JOIN (%s) q2 ON q1.end_date = q2.start_date " \
+                   " INNER JOIN (%s) q3 ON q2.end_date = q3.start_date "
 
-                if isinstance(item, Range):
-                    results.append(ResultRange(id, start_date, end_date, None))
-                else:
+        add_template = " INNER JOIN (%s) q%s ON q%s.end_date = q%s.start_date " \
+                       " INNER JOIN (%s) q%s ON q%s.end_date = q%s.start_date "
+
+        select = ""
+        for i in range(1, size+1):
+            print items[i-1].get_query()
+            if i % 2 == 0:
+                select += "q"+str(i)+".trip_id,q"+str(i)+".start_date,q"+str(i)+".end_date, "
+            else:
+                select += "q"+str(i)+".stay_id,q"+str(i)+".start_date,q"+str(i)+".end_date, "
+        select = select.rstrip(', ')
+
+        template = template%(select, items[0].get_query(),items[1].get_query(), items[2].get_query())
+
+        if size > 3:
+            id = 4
+            how_many = (size-3)/2
+            for j in range(1, how_many+1):
+                print id, size
+                if id <= size:
+                    template += add_template%(items[id-1].get_query(), id, id-1, id, items[id].get_query(), id+1, id, id+1)
+                    id += 2
+    elif size ==1:
+        template = items[0].get_query()
+
+
+    try:
+        cur.execute(template)
+        temp = cur.fetchall()
+        if temp == []:
+            return ([],[])
+
+        for result in temp:
+            for i in range(0, size*3, 3):
+                print i
+                id = result[i]
+                start_date = result[i+1]
+                end_date = result[i+2]
+
+                try:
+                    int(id)
                     results.append(ResultInterval(id, start_date, end_date, None))
+                except ValueError:
+                    results.append(ResultRange(id, start_date, end_date, None))
 
             all.append(results)
             results = []
-        except psycopg2.ProgrammingError:
-            print "error"
-            send_to_all_clients(empty_query())
+    except psycopg2.ProgrammingError:
+        print "error"
+        send_to_all_clients(empty_query())
 
     size = len(all)
-    to_show = []
-    if size > 1:
-        to_show = match_queries(all, size, 0, 1, 2, {}, 0)
-        to_show = remove_uncorresponding_entries(to_show, size)
 
+    to_show = all
 
-        to_show = refine_with_group_by(to_show)
-        to_show = refine_with_group_by_date(to_show)
+    to_show = refine_with_group_by(to_show)
+    print to_show
+    to_show = refine_with_group_by_date(to_show)
 
-    else:
-        #print all
-        for item in all:
-            for derp in item:
-                to_show.append([derp])
-        to_show = refine_with_group_by(to_show)
-        to_show = refine_with_group_by_date(to_show)
 
     for key, value in to_show.iteritems():
         global moreResults
@@ -1904,35 +1934,13 @@ class groupbyDate(dict):
 def refine_with_group_by(to_show):
     dict = {}
 
-    if len(to_show[0]) > 1:
-        first_time = True
-        key = 0
-        for entry in to_show:
+    from operator import itemgetter
 
-            size = len(entry)
-            if first_time:
-                dict[key] = []
-                dict[key].append(entry)
-                first_time = False
-
-            else:
-                previous = True
-                for i in range(0, size, 2):
-
-                    if entry[i].id == dict[key][0][i].id and previous:
-                        previous = True
-                    else:
-                        previous = False
-
-
-
-                if previous:
-                    dict[key].append(entry)
-                else:
-                    key += 1
-                    dict[key] = []
-                    dict[key].append(entry)
-
+    to_show.sort(key=lambda item: item[0].id)
+    for elt, items in groupby(to_show, lambda item: item[0].id):
+        dict[elt] = []
+        for i in items:
+            dict[elt].append(i)
     #
     #     key += 1
     #
@@ -1947,14 +1955,14 @@ def refine_with_group_by(to_show):
     #
     #
     #
-    else:
-        for k, g in groupby(to_show, key=lambda r: r[0].id):
-             for record in g:
-                 if k not in dict:
-                     dict[k] = []
-                     dict[k].append(record)
-                 else:
-                     dict[k].append(record)
+    # else:
+    # for k, g in groupby(to_show, key=lambda r: r[0].id):
+    #      for record in g:
+    #          if k not in dict:
+    #              dict[k] = []
+    #              dict[k].append(record)
+    #          else:
+    #              dict[k].append(record)
 
     return dict
     # dict = {}
@@ -2030,15 +2038,17 @@ def remove_duplicates(values):
     return output
 
 def remove_uncorresponding_entries(to_show, size):
+    print to_show
     final = []
     for key in sorted(to_show):
         if len(to_show[key]) == size:
-            final.append(remove_duplicates(to_show[key]))
+            final.append(to_show[key])
 
 
     return final
 
 def match_queries(all, size, i, j, k, to_show, l):
+    print i, j, k
     for a, b, c in itertools.product(all[i], all[j], all[k]):
        # print "size", size
        # print "len", len(to_show[l])
@@ -2049,29 +2059,26 @@ def match_queries(all, size, i, j, k, to_show, l):
         if a.date == b.date and \
                 b.date == c.date and \
                 c.date == a.date and \
-                a.date == b.date and \
-                b.date == c.date and \
-                c.date == a.date and \
                 a.end_date.strftime('%H:%M') == b.start_date.strftime('%H:%M') and \
                 b.end_date.strftime('%H:%M') == c.start_date.strftime('%H:%M'):
             #if(k == 2): #add the first only when it runs once and is only 3 items
             try:
-                if a not in to_show[str(a.date)]:
-                    to_show[str(a.date)].append(a)
+                #if a not in to_show[str(a.date)]:
+                to_show[str(a.date)].append(a)
             except KeyError:
                 to_show[str(a.date)] = []
                 to_show[str(a.date)].append(a)
 
             try:
-                if b not in to_show[str(b.date)]:
-                    to_show[str(b.date)].append(b)
+                #if b not in to_show[str(b.date)]:
+                to_show[str(b.date)].append(b)
             except KeyError:
                 to_show[str(b.date)] = []
                 to_show[str(b.date)].append(b)
 
             try:
-                if c not in to_show[str(c.date)]:
-                    to_show[str(c.date)].append(c)
+                #if c not in to_show[str(c.date)]:
+                to_show[str(c.date)].append(c)
             except KeyError:
                 to_show[str(c.date)] = []
                 to_show[str(c.date)].append(c)
