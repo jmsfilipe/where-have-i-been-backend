@@ -18,6 +18,12 @@ def minutes_to_military(minutes):
     tmp = tmp.replace(" ","0")
     return tmp
 
+def minutes_to_military2(minutes):
+    h = minutes / 60
+    m = minutes % 60
+    tmp = "%2d:%2d" % (h, m)
+    tmp = tmp.replace(" ","0")
+    return tmp
 
 class Day:
     def __init__(self, date):

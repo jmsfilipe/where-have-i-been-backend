@@ -56,6 +56,8 @@ class WSHandler(tornado.websocket.WebSocketHandler):
             msg = fetch_location_names()
             self.send(msg)
         elif message["message"] == "more results request":
+            print "MAIS UMA REQUEST"
+            print message["data"]
             msg = fetch_more_results(message["data"])
             for i in msg:
                 self.send(i)
@@ -1657,7 +1659,7 @@ def temporary_fetch_from_db():
         print "error"
         send_to_all_clients(empty_query())
 
-    size = len(all)
+    size2 = len(all)
 
     to_show = all
 
@@ -1666,15 +1668,23 @@ def temporary_fetch_from_db():
     to_show = refine_with_group_by_date(to_show)
 
 
+
     for key, value in to_show.iteritems():
         global moreResults
         temp = value
         moreResults.append(temp)
+    print "LEN" ,len(moreResults)
+
+
+    id = 0
+    for key, value in to_show.iteritems():
+        to_show[id] = to_show.pop(key)
+        id += 1
 
     locations, trips = get_global_map_data(to_show)
 
 
-    summary = quartiles(to_show, size)
+    summary = quartiles(to_show, size2)
 
     i = 0
     import json
@@ -1695,6 +1705,7 @@ def temporary_fetch_from_db():
             temp += "]}"
             end.append(temp)
         i += 1
+    print "AI",i
 
     return end, send_global_map_data(locations, trips)
 
@@ -2001,7 +2012,7 @@ def refine_with_group_by_date(to_show):
     #         except:
     #             dict[key] = []
     #             dict[key].append(result[2].start_date)
-
+    id = 0
     for key1, value in to_show.iteritems():
         transactions=value
 
