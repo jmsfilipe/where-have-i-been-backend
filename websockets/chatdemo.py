@@ -95,7 +95,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
 
         if parsed == "start":
             final = {}
-            daysList = str(read_days("./location_semantics.txt"))
+            daysList = str(read_days("./semantics/location_semantics.txt"))
             global old_content
             old_content = daysList
             final["html"] =  tornado.escape.to_basestring(
@@ -103,7 +103,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
             SocketHandler.send_updates(final)
         if parsed[0] == "save":
             file = get_semantic_file_from_string(parsed[1])
-            file.to_file("./location_semantics.txt")
+            file.to_file("./semantics/location_semantics.txt")
             keep_processing()
 
 curtimezone = "GMT"

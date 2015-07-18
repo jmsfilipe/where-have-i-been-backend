@@ -170,7 +170,7 @@ def fetch_location_geojson(location):
 def entry_map_request(ids):
     locations = {}
     trips = {}
-
+    print ids
     for pair in ids:
         id = pair[0]
         type = pair[1]
@@ -199,7 +199,6 @@ def fetch_geojson(id):
         temp = temp[0]
         return json.loads(temp)
     except:
-        send_to_all_clients(empty_query())
         return None
 
 

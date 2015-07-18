@@ -17,7 +17,7 @@ from math import sqrt
 import psycopg2
 import ppygis
 import gpxpy.geo as geo
-directory_name = 'HOJE/'
+directory_name = 'tracks/'
 saving_name = 'save/'
 saving_directory = os.path.join(directory_name, saving_name)
 
@@ -208,20 +208,32 @@ def get_semantic_file_with_learning(track_bits, locations):
 
     return file
 
-def write_odds_ends(track_bits):
+def write_odds_ends(track_bits, batch):
     from db_setup import insert_trips_database, insert_spans_database, insert_trips_temp_database
-    locs, state, old_days, new_days = read_all_data(track_bits)
+    locs, state, old_days, new_days = read_all_data(track_bits, batch)
     # if state == "not_first_time":
     #     locations = compute_locations(locs)
     #     file = get_semantic_file_with_learning(track_bits, locations)
     #     file.to_file("./location_semantics.txt")
 
-    check_gpx_changes(old_days, new_days)
+    if not batch:
+        check_gpx_changes(old_days, new_days)
     insert_trips_temp_database()
     insert_trips_database()
     insert_spans_database()
 
+def write_odds_ends_batch(track_bits):
+    from db_setup import insert_trips_database, insert_spans_database, insert_trips_temp_database
+    locs, state, new_days = read_all_data_batch(track_bits)
+    # if state == "not_first_time":
+    #     locations = compute_locations(locs)
+    #     file = get_semantic_file_with_learning(track_bits, locations)
+    #     file.to_file("./location_semantics.txt")
 
+    #check_gpx_changes(old_days, new_days)
+    insert_trips_temp_database()
+    insert_trips_database()
+    insert_spans_database()
 
 
 def distance(x1, y1, x2, y2):
@@ -359,17 +371,21 @@ def first_time():
     import os
     return not os.path.isfile("points.dat")
 
-def read_all_data(trackbits):
+def read_all_data(trackbits, batch):
     from db_setup import init_database
     import threading
     threading.Thread(target=start_server).start()
     state = ""
     if first_time():
         init_database()
-        old_days = get_semantic_file(trackbits)
-        old_days.to_file("location_semantics.txt")
+        if not batch:
+            old_days = get_semantic_file(trackbits)
+            old_days.to_file("semantics/location_semantics.txt")
+        else:
+            old_days = None
+
         if wait_until_save(100000):
-            days = semantic_places.read_days("location_semantics.txt")
+            days = semantic_places.read_days("semantics/location_semantics.txt")
             #days = semantic_places.read_days("partial.txt")
             locs, last_date = read_locations()
             #locs = []
@@ -379,14 +395,17 @@ def read_all_data(trackbits):
             #print "Info for %s days, up to %s" % (len(locs), last_date)
             return locs, state, old_days, days
     else:
-        old_days = get_semantic_file(trackbits)
-        old_days.to_file("location_semantics.txt")
+        if not batch:
+            old_days = get_semantic_file(trackbits)
+            old_days.to_file("semantics/location_semantics.txt")
+        else:
+            old_days = None
         locs, last_date = read_locations()
         locations = compute_locations(locs)
         file = get_semantic_file_with_learning(trackbits, locations)
-        file.to_file("location_semantics.txt")
+        file.to_file("semantics/location_semantics.txt")
         if wait_until_save(100000):
-            days = semantic_places.read_days("location_semantics.txt")
+            days = semantic_places.read_days("semantics/location_semantics.txt")
             #days = semantic_places.read_days("partial.txt")
             locs, last_date = read_locations()
             #locs = []
@@ -396,6 +415,42 @@ def read_all_data(trackbits):
             #print "Info for %s days, up to %s" % (len(locs), last_date)
 
             return locs, state, old_days, days
+
+def read_all_data_batch(trackbits):
+    from db_setup import init_database
+    state = ""
+    if first_time():
+        init_database()
+        #old_days = get_semantic_file(trackbits)
+    #old_days.to_file("location_semantics.txt")
+    #if wait_until_save(100000):
+    days = semantic_places.read_days("location_semantics.txt")
+    #days = semantic_places.read_days("partial.txt")
+    #locs, last_date = read_locations()
+    #locs = []
+    #if not locs:
+    locs = gather_locations(days)
+    state = "first_time"
+    #print "Info for %s days, up to %s" % (len(locs), last_date)
+    return locs, state, days
+    # else:
+    #     old_days = get_semantic_file(trackbits)
+    #     old_days.to_file("location_semantics.txt")
+    #     locs, last_date = read_locations()
+    #     locations = compute_locations(locs)
+    #     file = get_semantic_file_with_learning(trackbits, locations)
+    #     file.to_file("location_semantics.txt")
+    #     if wait_until_save(100000):
+    #         days = semantic_places.read_days("location_semantics.txt")
+    #         #days = semantic_places.read_days("partial.txt")
+    #         locs, last_date = read_locations()
+    #         #locs = []
+    #         #if not locs:
+    #         locs = update_locations(days, locs, last_date)
+    #         state = "not_first_time"
+    #         #print "Info for %s days, up to %s" % (len(locs), last_date)
+    #
+    #         return locs, state, old_days, days
 
 
 def wait_until_save(timeout, period=0.25):
@@ -453,7 +508,7 @@ def neighborhood(iterable):
 def join_gpx(first_track_start, second_track_start):
     first_track_start = minutes_to_military(first_track_start)
     second_track_start = minutes_to_military(second_track_start)
-    directory_name = 'hoje/'
+    directory_name = 'tracks/'
     saving_name = 'save/'
     saving_directory = os.path.join(directory_name, saving_name)
     print "####", first_track_start, second_track_start
@@ -506,7 +561,7 @@ def join_gpx(first_track_start, second_track_start):
 
 def remove_gpx_file(date, start_time):
     start_time = minutes_to_military(start_time)
-    directory_name = 'hoje/'
+    directory_name = 'tracks/'
     saving_name = 'save/'
     saving_directory = os.path.join(directory_name, saving_name)
 
@@ -546,7 +601,7 @@ def read_day_tracks(day):
     files = []
     points = []
 
-    directory_name = 'hoje/'
+    directory_name = 'tracks/'
     saving_name = 'save/'
     saving_directory = os.path.join(directory_name, saving_name)
 

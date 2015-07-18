@@ -8,7 +8,7 @@ import glob
 import gpxpy
 import os
 
-directory_name = 'hoje/'
+directory_name = 'tracks/'
 saving_name = 'save/'
 saving_directory = os.path.join(directory_name, saving_name)
 
@@ -110,7 +110,7 @@ def insert_spans_database():
     cur.execute("SET TIME ZONE '0'")
     conn.commit()
 
-    semantic_file = read_days("location_semantics.txt")
+    semantic_file = read_days("semantics/location_semantics.txt")
     for day in semantic_file.days:
         for entry in day.entries:
             #start_date = parse((day.date + " " + minutes_to_military2(entry.start_date) + ' UTC%+d' %  entry.timezone).replace("_","/"))
@@ -139,7 +139,7 @@ def insert_trips_temp_database():
     cur.execute("SET TIME ZONE '0'")
     conn.commit()
 
-    semantic_file = read_days("location_semantics.txt")
+    semantic_file = read_days("semantics/location_semantics.txt")
     for day in semantic_file.days:
         for prev, entry, next in neighborhood(day.entries):
             #start_date = parse((day.date + " " + minutes_to_military2(entry.start_date) + ' UTC%+d' %  entry.timezone).replace("_","/"))

@@ -19,7 +19,7 @@ if __name__ == '__main__':
     import os
     import time
 
-    directory_name = 'hoje/'
+    directory_name = 'tracks/'
     saving_name = 'save/'
     saving_directory = os.path.join(directory_name, saving_name)
     DATE_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
