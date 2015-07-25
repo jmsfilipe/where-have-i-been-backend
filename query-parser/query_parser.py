@@ -41,6 +41,7 @@ class WSHandler(tornado.websocket.WebSocketHandler):
                         self.send(item)
                     self.send(mapData)
             clean()
+
         elif message["message"] == "entry map request":
             locations, trips = entry_map_request(message["data"])
             self.send(send_map_data(locations, trips))
@@ -1691,7 +1692,7 @@ def temporary_fetch_from_db():
     end = []
     for key, value in summary.iteritems():
         if value != []:
-            temp = "{\"message\":\"query colapsable results\", \"size\":\""+str(size)+"\",  \"data\":["
+            temp = "{\"message\":\"query colapsable results\", \"size\":\""+str(size)+"\", \"total\":\""+str(len(to_show))+"\",  \"data\":["
             for item in value:
                 if represent_int(item[2]):
                     temp1 = ResultInterval(item[2], item[0], item[1], item[3])
