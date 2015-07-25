@@ -218,8 +218,8 @@ def write_odds_ends(track_bits, batch):
 
     if not batch:
         check_gpx_changes(old_days, new_days)
-    insert_trips_temp_database()
     insert_trips_database()
+    insert_trips_temp_database()
     insert_spans_database()
 
 def write_odds_ends_batch(track_bits):
@@ -632,6 +632,7 @@ def gather_locations(days):
         #print points
         if len(points):
             for s in d.entries:
+                print s.location
                 a,b = s.start_gmt()
                 if b==1:
                     a = a+60*24
@@ -662,7 +663,7 @@ def gather_locations(days):
                     coords =  average_coords(res[s.location])
                     insert_place_database(s.location, coords)
                 except KeyError:
-                    insert_place_database(s.location, [0,0,0])
+                    insert_place_database(s.location, None)
 
     f=open("points.dat","w")
     cPickle.dump(days.days[-1].date,f)
@@ -684,6 +685,7 @@ def update_locations(days, last_data, last_date):
             points = read_day_tracks(d.date)
             if len(points):
                 for s in d.entries:
+                    print s.location
                     a,b = s.start_gmt()
                     if b==1:
                         a = a+60*24

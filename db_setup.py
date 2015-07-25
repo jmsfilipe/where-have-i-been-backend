@@ -27,6 +27,7 @@ def init_database():
     cur.execute("CREATE TABLE IF NOT EXISTS stays (stay_id TEXT, start_date TIMESTAMP WITHOUT TIME ZONE NOT NULL, end_date TIMESTAMP WITHOUT TIME ZONE NOT NULL)")
     cur.execute("CREATE TABLE IF NOT EXISTS colors (category TEXT, color TEXT)")
     cur.execute("CREATE TABLE IF NOT EXISTS categories (category TEXT, location TEXT)")
+    #cur.execute("ALTER TABLE linestrings ALTER COLUMN geom TYPE GEOGRAPHY(LineStringZ) USING ST_Force_3D(geom)");
     conn.commit()
 
 def insert_empty_trip_database(date, start, end):
@@ -60,24 +61,23 @@ def insert_trips_database():
             for track in gpx.tracks:
                 for segment in track.segments:
                     cur.execute("INSERT INTO trips(start_date, end_date) VALUES('" + str(segment.points[0].time.replace(second=0)) + "', '" + str(segment.points[-1].time.replace(second=0)) + "')")
+                    conn.commit()
 
-            conn.commit()
+            # for track in gpx.tracks:
+            #     for segment in track.segments:
+            #         for point in segment.points:
+            #             cur.execute("INSERT INTO trip_points(point, timestamp) VALUES('" + ppygis.Point(point.latitude, point.longitude, point.elevation, srid=4326).write_ewkb() + "', '" + str(point.time) + "')")
 
-            for track in gpx.tracks:
-                for segment in track.segments:
-                    for point in segment.points:
-                        cur.execute("INSERT INTO trip_points(point, timestamp) VALUES('" + ppygis.Point(point.latitude, point.longitude, point.elevation, srid=4326).write_ewkb() + "', '" + str(point.time) + "')")
-
-            conn.commit()
+            #conn.commit()
 
             for track in gpx.tracks:
                 for segment in track.segments:
                     points=[]
                     for point in segment.points:
-                        points.append(ppygis.Point(point.longitude, point.latitude, point.elevation, srid=4326))
+                        points.append(ppygis.Point(point.longitude, point.latitude, point.elevation if point.elevation else 0, srid=4326))
 
                     cur.execute("INSERT INTO linestrings(geom) VALUES('" + ppygis.LineString((points), 4326).write_ewkb() +"')")
-            conn.commit()
+                    conn.commit()
     except Exception as e:
         print e
 

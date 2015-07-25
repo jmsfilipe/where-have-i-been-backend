@@ -175,6 +175,7 @@ def entry_map_request(ids):
         id = pair[0]
         type = pair[1]
         if type == "interval":
+            print fetch_geojson(id), id
             trips[id] = fetch_geojson(id)
         else:
             locations[id] = fetch_location_geojson(id)
@@ -1044,7 +1045,7 @@ class Range:
                             "start_date%s %s '%s' "%(self.durationSign, self.duration, self.endSign, self.end, self.castTime, self.startSign, self.start)
 
         if self.location is not None \
-            and self.locationCoords is None and self.end is None and self.start is None and self.temporalStartRange is None and self.temporalEndRange is None and self.spatialRange is None:
+            and self.end is None and self.start is None and self.temporalStartRange is None and self.temporalEndRange is None and (self.spatialRange is None or self.spatialRange == 0):
             query = "SELECT DISTINCT stay_id, start_date, end_date FROM stays WHERE stay_id LIKE '%s'" %(self.location)
 
 
