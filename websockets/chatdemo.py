@@ -92,16 +92,17 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         import websockets.Event as event
         logging.info("got message %r", message)
         parsed = tornado.escape.json_decode(message)
-
+        import HTMLParser
+        h = HTMLParser.HTMLParser()
         if parsed == "start":
             final = {}
             daysList = str(read_days("./semantics/location_semantics.txt"))
             global old_content
             old_content = daysList
-            final["html"] =  tornado.escape.to_basestring(
-                self.render_string("locations.html", table=daysList))
+            final["html"] = self.render_string("locations.html", table=h.unescape(daysList))
             SocketHandler.send_updates(final)
         if parsed[0] == "save":
+
             file = get_semantic_file_from_string(parsed[1])
             file.to_file("./semantics/location_semantics.txt")
             keep_processing()
