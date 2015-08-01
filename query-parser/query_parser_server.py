@@ -216,10 +216,17 @@ def join_date_time(date, time): #join 01/01/2001 with 01:01 to a  datetime
 
 import re
 def duration_to_sql(duration):
+
     minutes = re.search('\d{1,2}(?=m)', duration)
-    minutes = int(minutes.group(0))
+    if minutes is not None:
+        minutes = int(minutes.group(0))
+    else:
+        minutes = 0
     hours = re.search('\d{1,2}(?=h)', duration)
-    hours = int(hours.group(0))
+    if hours is not None:
+        hours = int(hours.group(0))
+    else:
+        hours = 0
 
     final_minutes = 0
 
