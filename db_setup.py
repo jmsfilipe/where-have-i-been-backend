@@ -50,7 +50,7 @@ def insert_trips_database():
         print "I am unable to connect to the database."
 
     cur = conn.cursor()
-    print "start inserting", datetime.datetime.now().time()
+    #print "start inserting", datetime.datetime.now().time()
     try:
         for entry in glob.glob(saving_directory + "*.gpx"):
             file = open(entry, 'rb')
@@ -95,7 +95,7 @@ def insert_trips_database():
     #
     # conn.commit()
 
-    print "end inserting", datetime.datetime.now().time()
+    #print "end inserting", datetime.datetime.now().time()
     cur.close()
     conn.close()
 
@@ -122,7 +122,7 @@ def insert_spans_database():
            # if entry.timezone != 0:
             #    start_date.replace(tzinfo=pytz.timezone('UTC'+str(entry.timezone)))
              #   end_date.replace(tzinfo=pytz.timezone('UTC'+str(entry.timezone)))
-            print start_date, end_date
+            #print start_date, end_date
             cur.execute("INSERT INTO stays(stay_id, start_date, end_date) VALUES(%s, %s, %s)",(entry.location, start_date, end_date));
     cur.close()
     conn.commit()
@@ -151,7 +151,7 @@ def insert_trips_temp_database():
            # if entry.timezone != 0:
             #    start_date.replace(tzinfo=pytz.timezone('UTC'+str(entry.timezone)))
              #   end_date.replace(tzinfo=pytz.timezone('UTC'+str(entry.timezone)))
-                print start_date, end_date
+                #print start_date, end_date
                 cur.execute("INSERT INTO trips(start_date, end_date) SELECT %s, %s WHERE NOT EXISTS ( SELECT start_date, end_date FROM trips WHERE start_date = %s AND end_date = %s)",(start_date, end_date, start_date, end_date));
     cur.close()
     conn.commit()

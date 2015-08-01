@@ -11,6 +11,7 @@ import gpxpy.semantic_places as semantic_places
 
 if __name__ == '__main__':
 
+    print "STARTING..."
     directory_name = 'tracks/'
     saving_name = 'save/'
     saving_directory = os.path.join(directory_name, saving_name)
@@ -33,5 +34,7 @@ if __name__ == '__main__':
             for segment in track.segments:
                     track_bits += [name_locations.find_track_bits(segment.points)]
 
+    print "READY TO SUBMIT."
     name_locations.write_odds_ends(track_bits, True)
+    print "ALL DATA IS NOW STORED.\nYOU CAN CLOSE THIS."
 

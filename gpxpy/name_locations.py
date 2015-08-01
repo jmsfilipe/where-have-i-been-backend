@@ -109,7 +109,7 @@ class Entry:
 
     def __repr__(self):
         global curtimezone
-        print "KEL CHECK", self.timezone, curtimezone
+        #print "KEL CHECK", self.timezone, curtimezone
         if self.timezone != curtimezone:
             tz = "GMT"+str("%+d" % (self.timezone))
             curtimezone = int(self.timezone)
@@ -297,7 +297,7 @@ def filter_locs(locs,step=0):
         return [0,0], near, far
 
 def average_coords(coords):
-    print "COORDS", coords
+    #print "COORDS", coords
     if coords is None:
         return None
     lat = reduce((lambda x,y:x+y),[x.latitude for x in coords])/len(coords)
@@ -473,14 +473,14 @@ def check_gpx_changes(old_content_obj, new_content_obj):
 
     for old_day, new_day in zip(old_content_obj.days, new_content_obj.days):
         if len(old_day.entries) > len(new_day.entries): #delete gpx
-            print "FIRST PROB"
+            #print "FIRST PROB"
             for (old_entry_prev, old_entry, old_entry_next), (new_entry_prev, new_entry, new_entry_next) in zip(neighborhood(old_day.entries), neighborhood(new_day.entries)):
                 if old_entry.start_date == new_entry.start_date and old_entry.end_date != new_entry.end_date:
                     join_gpx(old_entry.end_date, old_entry_next.end_date)
                 elif old_entry.start_date == new_entry.start_date and old_entry.end_date == new_entry.end_date and old_entry_next.start_date != new_entry_next.start_date and old_entry_next.end_date != new_entry_next.end_date:
                     remove_gpx_file(old_day.date, old_entry.end_date)
         elif len(old_day.entries) < len(new_day.entries): #split gpx
-            print "SECOND PROB"
+            #print "SECOND PROB"
             for old_entry, new_entry in zip(old_day.entries, new_day.entries):
                 if old_entry.end_date != new_entry.end_date and old_entry.start_date == new_entry.start_date:
 
@@ -511,7 +511,7 @@ def join_gpx(first_track_start, second_track_start):
     directory_name = 'tracks/'
     saving_name = 'save/'
     saving_directory = os.path.join(directory_name, saving_name)
-    print "####", first_track_start, second_track_start
+   #print "####", first_track_start, second_track_start
 
 
     files =[]
@@ -624,7 +624,7 @@ def read_day_tracks(day):
     return points
 
 def gather_locations(days):
-    print "GATHERDAYS"
+    #print "GATHERDAYS"
     #print days
     res = {}
     for d in days.days:
@@ -632,7 +632,7 @@ def gather_locations(days):
         #print points
         if len(points):
             for s in d.entries:
-                print s.location
+                #print s.location
                 a,b = s.start_gmt()
                 if b==1:
                     a = a+60*24
@@ -678,14 +678,14 @@ def update_locations(days, last_data, last_date):
     res = last_data
     days.days.sort(lambda x,y: cmp(x.date,y.date))
     for d in days.days:
-        print "aqui", d.date
-        print "ali", last_date
+        #print "aqui", d.date
+        #print "ali", last_date
         if datetime.datetime.strptime(d.date, '%Y_%m_%d')>datetime.datetime.strptime(last_date, '%Y_%m_%d'):
             #print d.date,
             points = read_day_tracks(d.date)
             if len(points):
                 for s in d.entries:
-                    print s.location
+                    #print s.location
                     a,b = s.start_gmt()
                     if b==1:
                         a = a+60*24
@@ -773,10 +773,10 @@ def get_closest_points(points, ts, limit = 60, snap = True, snap_limit = 60):  #
         return before
     #return None
     if (not before) and (not after):
-        print "none"
+        #print "none"
         return None
 
-    print after, before
+    #print after, before
     return geo.Location((after.latitude+before.latitude)/2,(after.longitude+before.longitude)/2,(after.elevation+before.elevation)/2)
 
 

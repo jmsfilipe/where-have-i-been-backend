@@ -42,8 +42,8 @@ class Application(tornado.web.Application):
         ]
         settings = dict(
             cookie_secret="__TODO:_GENERATE_YOUR_OWN_RANDOM_VALUE_HERE__",
-            template_path=os.path.join(os.path.dirname(__file__), "../templates"),
-            static_path=os.path.join(os.path.dirname(__file__), "../static"),
+            template_path= "templates",
+            static_path="static",
             xsrf_cookies=True,
         )
         tornado.web.Application.__init__(self, handlers, **settings)
@@ -80,7 +80,6 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
         logging.info("sending message to %d waiters", len(cls.clients))
         for client in cls.clients:
             try:
-                print chat
                 client.write_message(chat)
             except:
                 logging.error("Error sending message", exc_info=True)
@@ -140,7 +139,6 @@ import datetime
 def validate(date_text):
     if date_text[:2] == "--":
         date_text = date_text[2:]
-    print date_text
     try:
         return datetime.datetime.strptime(date_text, '%Y_%m_%d').date()
     except Exception, e:
