@@ -257,7 +257,7 @@ def simplify2(points, max_points):
     while True:
         d_max = 0
         for n in range(i+1,j-1):
-            print "n"
+            #print "n"
             d = distance_from_line(points[n], points[i], points[j])
             if(d > d_max):
                 d_max = d

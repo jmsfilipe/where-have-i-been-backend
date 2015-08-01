@@ -18,7 +18,7 @@ if __name__ == '__main__':
     import glob
     import os
     import time
-
+    print "STARTING..."
     directory_name = 'tracks/'
     saving_name = 'save/'
     saving_directory = os.path.join(directory_name, saving_name)
@@ -61,3 +61,4 @@ if __name__ == '__main__':
             fo = open("{}-part{}.gpx".format(os.path.join(saving_directory,current_day),name), "wb")
             fo.write(gpx_write.to_xml())
             fo.close()
+    print "ALL DATA IS PROCESSED.\nYOU CAN NOW CLOSE THIS."
