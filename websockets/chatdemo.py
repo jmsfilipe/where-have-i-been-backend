@@ -42,8 +42,8 @@ class Application(tornado.web.Application):
         ]
         settings = dict(
             cookie_secret="__TODO:_GENERATE_YOUR_OWN_RANDOM_VALUE_HERE__",
-            template_path=os.path.join(os.path.dirname(__file__), "templates"),
-            static_path=os.path.join(os.path.dirname(__file__), "static"),
+            template_path=os.path.join(os.path.dirname(__file__), "../templates"),
+            static_path=os.path.join(os.path.dirname(__file__), "../static"),
             xsrf_cookies=True,
         )
         tornado.web.Application.__init__(self, handlers, **settings)
@@ -107,7 +107,7 @@ class SocketHandler(tornado.websocket.WebSocketHandler):
             file.to_file("./semantics/location_semantics.txt")
             keep_processing()
 
-curtimezone = "GMT"
+curtimezone = "GMT+0"
 def get_semantic_file_from_string(content): #gets a semantic string and resutnrs a semantic object
     from gpxpy.name_locations import SemanticFile, Entry, Day
     from gpxpy.semantic_places import  get_location, get_gmt
@@ -116,7 +116,7 @@ def get_semantic_file_from_string(content): #gets a semantic string and resutnrs
     file = SemanticFile()
     mylist = content.split('\n')
     for line in mylist:
-        if len(line)==0 or line[0]=="*" or line[0] == '\n':
+        if len(line)==0 or line[0]=="*" or line[0] == '\n' or line[0] == '\t' or line[0] == ' ':
             pass
         elif validate(line):
             curday = Day(get_date(line))
@@ -130,7 +130,7 @@ def get_semantic_file_from_string(content): #gets a semantic string and resutnrs
             descr = get_location(line)
             curday.add_entry(Entry(dates[:4],dates[-4:],descr,curtimezone))
     global curtimezone
-    curtimezone = "GMT"
+    curtimezone = "GMT+0"
 
     return file
 
