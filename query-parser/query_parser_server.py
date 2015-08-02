@@ -1130,17 +1130,17 @@ class Interval:
             self.durationSign = None
 
         if route != "route" and is_coordinates(route):
-            self.route = route
+            self.route = switch_coordinates(route)
         else:
             self.route = None
 
 
     def generate_query(self):
-        query = "SELECT trip_id, start_date, end_date FROM trips"
+        query = "SELECT DISTINCT trip_id, start_date, end_date FROM trips"
 
         if self.start is not None and self.temporalStartRange is not None and self.end is not None and self.temporalEndRange is not None \
                 and self.duration is None and self.route is None:
-            query = "SELECT trip_id, start_date, end_date FROM trips WHERE start_date%s BETWEEN CAST('%s' AS %s) - CAST('%s' AS INTERVAL) AND " \
+            query = "SELECT DISTINCT trip_id, start_date, end_date FROM trips WHERE start_date%s BETWEEN CAST('%s' AS %s) - CAST('%s' AS INTERVAL) AND " \
                     "CAST('%s' AS %s) + CAST('%s' AS INTERVAL) " \
                     "AND " \
                     "end_date%s BETWEEN CAST('%s' AS %s) - CAST('%s' AS INTERVAL) AND " \
@@ -1164,12 +1164,12 @@ class Interval:
 
             query += ")"
 
-            query += " SELECT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
+            query += " SELECT DISTINCT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
                     " WHERE a.trip_id = linestrings.trip_id AND ST_DWithin(linestrings.geom, ST_SetSRID(ST_MakePoint(%s),4326)::geography, 250)"%(self.route)
 
         if self.start is not None and self.end is not None and self.temporalEndRange is not None \
                 and self.temporalStartRange is None and self.duration is None and self.route is None:
-            query = "SELECT trip_id, start_date, end_date FROM trips WHERE start_date%s %s '%s'" \
+            query = "SELECT DISTINCT trip_id, start_date, end_date FROM trips WHERE start_date%s %s '%s'" \
                     "AND " \
                     "end_date%s BETWEEN CAST('%s' AS %s) - CAST('%s' AS INTERVAL) AND " \
                     "CAST('%s' AS %s) + CAST('%s' AS INTERVAL)" %(self.castTime, self.startSign, self.start, self.castTime, self.end, self.fullDate, self.temporalEndRange, self.end, self.fullDate, self.temporalEndRange)
@@ -1187,13 +1187,13 @@ class Interval:
 
             query += ")"
 
-            query += " SELECT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
+            query += " SELECT  DISTINCT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
                     " WHERE a.trip_id = linestrings.trip_id AND ST_DWithin(linestrings.geom, ST_SetSRID(ST_MakePoint(%s),4326)::geography, 250)"%(self.route)
 
 
         if self.start is not None and self.temporalStartRange is not None and self.end is not None \
                 and self.temporalEndRange is None and self.duration is None and self.route is None:
-            query = "SELECT trip_id, start_date, end_date FROM trips WHERE start_date%s BETWEEN CAST('%s' AS %s) - CAST('%s' AS INTERVAL) AND " \
+            query = "SELECT DISTINCT trip_id, start_date, end_date FROM trips WHERE start_date%s BETWEEN CAST('%s' AS %s) - CAST('%s' AS INTERVAL) AND " \
                     "CAST('%s' AS %s) + CAST('%s' AS INTERVAL) " \
                     "AND " \
                     "end_date%s %s '%s'" %(self.castTime, self.start, self.fullDate, self.temporalStartRange, self.start, self.fullDate, self.temporalStartRange, self.castTime, self.endSign, self.end)
@@ -1211,12 +1211,12 @@ class Interval:
 
             query += ")"
 
-            query += " SELECT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
+            query += " SELECT DISTINCT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
                     " WHERE a.trip_id = linestrings.trip_id AND ST_DWithin(linestrings.geom, ST_SetSRID(ST_MakePoint(%s),4326)::geography, 250)"%(self.route)
 
         if self.start is not None and self.end is not None \
                 and self.temporalStartRange is None and self.temporalEndRange is None and self.duration is None and self.route is None:
-            query = "SELECT trip_id, start_date, end_date FROM trips WHERE start_date%s %s '%s' " \
+            query = "SELECT  DISTINCT trip_id, start_date, end_date FROM trips WHERE start_date%s %s '%s' " \
                     "AND " \
                     "end_date%s %s '%s'" %(self.castTime, self.startSign, self.start, self.castTime, self.endSign, self.end)
 
@@ -1228,13 +1228,13 @@ class Interval:
 
             query += ")"
 
-            query += " SELECT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
+            query += " SELECT DISTINCT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
                     " WHERE a.trip_id = linestrings.trip_id AND ST_DWithin(linestrings.geom, ST_SetSRID(ST_MakePoint(%s),4326)::geography, 250)"%(self.route)
 
 
         if self.start is not None \
                 and self.end is None and self.temporalStartRange is None and self.temporalEndRange is None and self.duration is None and self.route is None:
-            query = "SELECT trip_id, start_date, end_date FROM trips WHERE start_date%s %s '%s' " %(self.castTime, self.startSign, self.start)
+            query = "SELECT DISTINCT trip_id, start_date, end_date FROM trips WHERE start_date%s %s '%s' " %(self.castTime, self.startSign, self.start)
 
         if self.start is not None and self.route is not None\
                 and self.end is None and self.temporalStartRange is None and self.temporalEndRange is None and self.duration is None:
@@ -1242,12 +1242,12 @@ class Interval:
 
             query += ")"
 
-            query += " SELECT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
+            query += " SELECT DISTINCT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
                     " WHERE a.trip_id = linestrings.trip_id AND ST_DWithin(linestrings.geom, ST_SetSRID(ST_MakePoint(%s),4326)::geography, 250)"%(self.route)
 
         if self.end is not None \
                 and self.start is None and self.temporalStartRange is None and self.temporalEndRange is None and self.duration is None and self.route is None:
-            query = "SELECT trip_id, start_date, end_date FROM trips WHERE end_date%s %s '%s' " %(self.castTime, self.endSign, self.end)
+            query = "SELECT DISTINCT trip_id, start_date, end_date FROM trips WHERE end_date%s %s '%s' " %(self.castTime, self.endSign, self.end)
 
         if self.end is not None and self.route is not None\
                 and self.start is None and self.temporalStartRange is None and self.temporalEndRange is None and self.duration is None:
@@ -1255,7 +1255,7 @@ class Interval:
 
             query += ")"
 
-            query += " SELECT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
+            query += " SELECT DISTINCT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
                     " WHERE a.trip_id = linestrings.trip_id AND ST_DWithin(linestrings.geom, ST_SetSRID(ST_MakePoint(%s),4326)::geography, 250)"%(self.route)
 
 ################
@@ -1265,7 +1265,7 @@ class Interval:
                         " SELECT (DATE_PART('day', end_date - start_date) * 24 + " \
                         " DATE_PART('hour', end_date - start_date)) * 60 +" \
                         " DATE_PART('minute', end_date - start_date) AS duration FROM trips) " \
-                            " SELECT trip_id, start_date, end_date FROM trips, durations WHERE durations.duration %s '%s' AND " \
+                            " SELECT DISTINCT trip_id, start_date, end_date FROM trips, durations WHERE durations.duration %s '%s' AND " \
                             " start_date%s BETWEEN CAST('%s' AS %s) - CAST('%s' AS INTERVAL) AND "  \
                             " CAST('%s' AS %s) + CAST('%s' AS INTERVAL) "  \
                             " AND "  \
@@ -1296,7 +1296,7 @@ class Interval:
 
             query += ")"
 
-            query += " SELECT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
+            query += " SELECT DISTINCT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
                     " WHERE a.trip_id = linestrings.trip_id AND ST_DWithin(linestrings.geom, ST_SetSRID(ST_MakePoint(%s),4326)::geography, 250)"%(self.route)
 
         if self.start is not None and self.end is not None and self.temporalEndRange is not None and self.duration is not None\
@@ -1305,7 +1305,7 @@ class Interval:
                         " SELECT (DATE_PART('day', end_date - start_date) * 24 + " \
                         " DATE_PART('hour', end_date - start_date)) * 60 +" \
                         " DATE_PART('minute', end_date - start_date) AS duration FROM trips) " \
-                            " SELECT trip_id, start_date, end_date FROM trips, durations WHERE durations.duration %s '%s' AND " \
+                            " SELECT DISTINCT trip_id, start_date, end_date FROM trips, durations WHERE durations.duration %s '%s' AND " \
                             " start_date%s %s '%s' "  \
                             " AND "  \
                             " end_date%s BETWEEN CAST('%s' AS %s) - CAST('%s' AS INTERVAL) AND "  \
@@ -1329,7 +1329,7 @@ class Interval:
 
             query += ")"
 
-            query += " SELECT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
+            query += " DISTINCT SELECT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
                     " WHERE a.trip_id = linestrings.trip_id AND ST_DWithin(linestrings.geom, ST_SetSRID(ST_MakePoint(%s),4326)::geography, 250)"%(self.route)
 
 
@@ -1339,7 +1339,7 @@ class Interval:
                         " SELECT (DATE_PART('day', end_date - start_date) * 24 + " \
                         " DATE_PART('hour', end_date - start_date)) * 60 +" \
                         " DATE_PART('minute', end_date - start_date) AS duration FROM trips) " \
-                            " SELECT trip_id, start_date, end_date FROM trips, durations WHERE durations.duration %s '%s' AND " \
+                            " SELECT DISTINCT trip_id, start_date, end_date FROM trips, durations WHERE durations.duration %s '%s' AND " \
                             " start_date%s BETWEEN CAST('%s' AS %s) - CAST('%s' AS INTERVAL) AND "  \
                             " CAST('%s' AS %s) + CAST('%s' AS INTERVAL) "  \
                             " AND "  \
@@ -1363,7 +1363,7 @@ class Interval:
 
             query += ")"
 
-            query += " SELECT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
+            query += " SELECT DISTINCT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
                     " WHERE a.trip_id = linestrings.trip_id AND ST_DWithin(linestrings.geom, ST_SetSRID(ST_MakePoint(%s),4326)::geography, 250)"%(self.route)
 
 
@@ -1373,7 +1373,7 @@ class Interval:
                         " SELECT (DATE_PART('day', end_date - start_date) * 24 + " \
                         " DATE_PART('hour', end_date - start_date)) * 60 +" \
                         " DATE_PART('minute', end_date - start_date) AS duration FROM trips) " \
-                            " SELECT trip_id, start_date, end_date FROM trips, durations WHERE durations.duration %s '%s' AND " \
+                            " SELECT DISTINCT trip_id, start_date, end_date FROM trips, durations WHERE durations.duration %s '%s' AND " \
                             " start_date%s %s '%s' "  \
                             " AND "  \
                             " end_date%s %s '%s'" %(self.durationSign, self.duration, self.castTime, self.startSign, self.start, self.castTime, self.endSign, self.end)
@@ -1390,7 +1390,7 @@ class Interval:
                             " end_date%s %s '%s'" %(self.durationSign, self.duration, self.castTime, self.startSign, self.start, self.castTime, self.endSign, self.end)
             query += ")"
 
-            query += " SELECT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
+            query += " SELECT DISTINCT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
                     " WHERE a.trip_id = linestrings.trip_id AND ST_DWithin(linestrings.geom, ST_SetSRID(ST_MakePoint(%s),4326)::geography, 250)"%(self.route)
 
 
@@ -1400,7 +1400,7 @@ class Interval:
                         " SELECT (DATE_PART('day', end_date - start_date) * 24 + " \
                         " DATE_PART('hour', end_date - start_date)) * 60 +" \
                         " DATE_PART('minute', end_date - start_date) AS duration FROM trips) " \
-                            " SELECT trip_id, start_date, end_date FROM trips, durations WHERE durations.duration %s '%s' AND " \
+                            " SELECT DISTINCT trip_id, start_date, end_date FROM trips, durations WHERE durations.duration %s '%s' AND " \
                             " end_date%s BETWEEN CAST('%s' AS %s) - CAST('%s' AS INTERVAL) AND "  \
                             " CAST('%s' AS %s) + CAST('%s' AS INTERVAL)" %(self.durationSign, self.duration, self.castTime, self.end, self.fullDate, self.temporalEndRange, self.end, self.fullDate, self.temporalEndRange)
             if self.endSign != '=':
@@ -1420,7 +1420,7 @@ class Interval:
 
             query += ")"
 
-            query += " SELECT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
+            query += " SELECT DISTINCT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
                     " WHERE a.trip_id = linestrings.trip_id AND ST_DWithin(linestrings.geom, ST_SetSRID(ST_MakePoint(%s),4326)::geography, 250)"%(self.route)
 
 
@@ -1430,7 +1430,7 @@ class Interval:
                         " SELECT (DATE_PART('day', end_date - start_date) * 24 + " \
                         " DATE_PART('hour', end_date - start_date)) * 60 +" \
                         " DATE_PART('minute', end_date - start_date) AS duration FROM trips) " \
-                            " SELECT trip_id, start_date, end_date FROM trips, durations WHERE durations.duration %s '%s' AND " \
+                            " SELECT DISTINCT trip_id, start_date, end_date FROM trips, durations WHERE durations.duration %s '%s' AND " \
                             " start_date%s BETWEEN CAST('%s' AS %s) - CAST('%s' AS TIME) AND "  \
                             " CAST('%s' AS %s) + CAST('%s' AS INTERVAL) " %(self.durationSign, self.duration, self.castTime, self.start, self.fullDate, self.temporalStartRange, self.start, self.fullDate, self.temporalStartRange)
             if self.startSign != '=':
@@ -1450,7 +1450,7 @@ class Interval:
 
             query += ")"
 
-            query += " SELECT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
+            query += " SELECT DISTINCT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
                     " WHERE a.trip_id = linestrings.trip_id AND ST_DWithin(linestrings.geom, ST_SetSRID(ST_MakePoint(%s),4326)::geography, 250)"%(self.route)
 
 #######################
@@ -1461,7 +1461,7 @@ class Interval:
                         " SELECT (DATE_PART('day', end_date - start_date) * 24 + " \
                         " DATE_PART('hour', end_date - start_date)) * 60 +" \
                         " DATE_PART('minute', end_date - start_date) AS duration FROM trips) " \
-                            " SELECT trip_id, start_date, end_date FROM trips, durations WHERE durations.duration %s '%s'"\
+                            " SELECT DISTINCT trip_id, start_date, end_date FROM trips, durations WHERE durations.duration %s '%s'"\
                     %(self.durationSign, self.duration)
 
         if self.duration is not None and self.route is not None\
@@ -1475,14 +1475,14 @@ class Interval:
 
             query += ")"
 
-            query += " SELECT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
+            query += " SELECT DISTINCT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
                     " WHERE a.trip_id = linestrings.trip_id AND ST_DWithin(linestrings.geom, ST_SetSRID(ST_MakePoint(%s),4326)::geography, 250)"%(self.route)
 
         if self.route is not None\
                 and self.duration is None and self.start is None and self.end is None and self.temporalStartRange is None and self.temporalEndRange is None:
 
-            query = " SELECT trips.trip_id, start_date, end_date FROM linestrings INNER JOIN trips ON (linestrings.trip_id = trips.trip_id) "\
-                    " WHERE trips.trip_id = linestrings.trip_id AND ST_DWithin(linestrings.geom, ST_SetSRID(ST_MakePoint(%s),4326)::geography, 250)"%(switch_coordinates(self.route))
+            query = " SELECT DISTINCT trips.trip_id, start_date, end_date FROM linestrings INNER JOIN trips ON (linestrings.trip_id = trips.trip_id) "\
+                    " WHERE trips.trip_id = linestrings.trip_id AND ST_DWithin(linestrings.geom, ST_SetSRID(ST_MakePoint(%s),4326)::geography, 250)"%(self.route)
 
 
         if self.duration is not None and self.start is not None\
@@ -1491,7 +1491,7 @@ class Interval:
                         " SELECT (DATE_PART('day', end_date - start_date) * 24 + " \
                         " DATE_PART('hour', end_date - start_date)) * 60 +" \
                         " DATE_PART('minute', end_date - start_date) AS duration FROM trips) " \
-                            " SELECT trip_id, start_date, end_date FROM trips, durations WHERE durations.duration %s '%s'"\
+                            " SELECT DISTINCT trip_id, start_date, end_date FROM trips, durations WHERE durations.duration %s '%s'"\
                             " AND start_date%s %s '%s'" %(self.durationSign, self.duration, self.castTime, self.startSign, self.start)
 
         if self.duration is not None and self.start is not None and self.route is not None\
@@ -1504,7 +1504,7 @@ class Interval:
                             " AND start_date%s %s '%s'" %(self.durationSign, self.duration, self.castTime, self.startSign, self.start)
             query += ")"
 
-            query += " SELECT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
+            query += " SELECT DISTINCT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
                     " WHERE a.trip_id = linestrings.trip_id AND ST_DWithin(linestrings.geom, ST_SetSRID(ST_MakePoint(%s),4326)::geography, 250)"%(self.route)
 
 
@@ -1514,7 +1514,7 @@ class Interval:
                         " SELECT (DATE_PART('day', end_date - start_date) * 24 + " \
                         " DATE_PART('hour', end_date - start_date)) * 60 +" \
                         " DATE_PART('minute', end_date - start_date) AS duration FROM trips) " \
-                            " SELECT trip_id, start_date, end_date FROM trips, durations WHERE durations.duration %s '%s'"\
+                            " SELECT DISTINCT trip_id, start_date, end_date FROM trips, durations WHERE durations.duration %s '%s'"\
                             " AND end_date%s %s '%s'" %(self.durationSign, self.duration, self.castTime, self.endSign, self.end)
 
         if self.duration is not None and self.end is not None and self.route is not None\
@@ -1528,7 +1528,7 @@ class Interval:
 
             query += ")"
 
-            query += " SELECT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
+            query += " DISTINCT SELECT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
                     " WHERE a.trip_id = linestrings.trip_id AND ST_DWithin(linestrings.geom, ST_SetSRID(ST_MakePoint(%s),4326)::geography, 250)"%(self.route)
 
         if self.duration is not None and self.end is not None and self.start is not None\
@@ -1537,7 +1537,7 @@ class Interval:
                         " SELECT (DATE_PART('day', end_date - start_date) * 24 + " \
                         " DATE_PART('hour', end_date - start_date)) * 60 +" \
                         " DATE_PART('minute', end_date - start_date) AS duration FROM trips) " \
-                            " SELECT trip_id, start_date, end_date FROM trips, durations WHERE durations.duration %s '%s'"\
+                            " DISTINCT SELECT trip_id, start_date, end_date FROM trips, durations WHERE durations.duration %s '%s'"\
                             " AND end_date%s %s '%s' AND "\
                             " start_date%s %s '%s' " %(self.durationSign, self.duration, self.castTime, self.endSign, self.end, self.castTime, self.startSign, self.start)
 
@@ -1553,7 +1553,7 @@ class Interval:
 
             query += ")"
 
-            query += " SELECT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
+            query += " SELECT DISTINCT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
                     " WHERE a.trip_id = linestrings.trip_id AND ST_DWithin(linestrings.geom, ST_SetSRID(ST_MakePoint(%s),4326)::geography, 250)"%(self.route)
 
 ########################
