@@ -1150,8 +1150,8 @@ class Interval:
             if self.endSign != '=':
                 query += " AND end_date%s %s '%s' " %(self.castTime, self.endSign, self.end)
 
-        if self.route is not None and self.start is not None and self.temporalStartRange is not None and self.end is not None and self.temporalEndRange is not None \
-                and self.duration is None:
+        if self.start is not None and self.temporalStartRange is not None and self.end is not None and self.temporalEndRange is not None \
+                and self.duration is None and self.route is None:
             query = "WITH a AS (SELECT trip_id, start_date, end_date FROM trips WHERE start_date%s BETWEEN CAST('%s' AS %s) - CAST('%s' AS INTERVAL) AND " \
                     "CAST('%s' AS %s) + CAST('%s' AS INTERVAL) " \
                     "AND " \
@@ -1257,7 +1257,6 @@ class Interval:
 
             query += " SELECT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
                     " WHERE a.trip_id = linestrings.trip_id AND ST_DWithin(linestrings.geom, ST_SetSRID(ST_MakePoint(%s),4326)::geography, 250)"%(self.route)
-
 
 ################
         if self.start is not None and self.temporalStartRange is not None and self.end is not None and self.temporalEndRange is not None and self.duration is not None\
@@ -1478,6 +1477,12 @@ class Interval:
 
             query += " SELECT a.trip_id, a.start_date, a.end_date FROM a, linestrings "\
                     " WHERE a.trip_id = linestrings.trip_id AND ST_DWithin(linestrings.geom, ST_SetSRID(ST_MakePoint(%s),4326)::geography, 250)"%(self.route)
+
+        if self.route is not None\
+                and self.duration is None and self.start is None and self.end is None and self.temporalStartRange is None and self.temporalEndRange is None:
+
+            query = " SELECT trips.trip_id, start_date, end_date FROM linestrings INNER JOIN trips ON (linestrings.trip_id = trips.trip_id) "\
+                    " WHERE trips.trip_id = linestrings.trip_id AND ST_DWithin(linestrings.geom, ST_SetSRID(ST_MakePoint(%s),4326)::geography, 250)"%(switch_coordinates(self.route))
 
 
         if self.duration is not None and self.start is not None\
