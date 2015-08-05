@@ -1056,14 +1056,21 @@ class Range:
             and self.end is None and self.start is None and self.temporalStartRange is None and self.temporalEndRange is None and (self.spatialRange is None or self.spatialRange == 0):
             query = "SELECT DISTINCT stay_id, start_date, end_date FROM stays WHERE stay_id LIKE '%s'" %(self.location)
 
+        if self.location is not None and (self.spatialRange is not None or self.spatialRange != 0)\
+            and self.end is None and self.start is None and self.temporalStartRange is None and self.temporalEndRange is None:
+             query= " WITH l AS (  SELECT point  FROM  places  WHERE description = '%s' ), "\
+             " k AS( "\
+             " SELECT description FROM places,l "\
+             " WHERE ST_Distance(places.point, l.point) %s '%s' )"\
+            " SELECT description, start_date, end_date FROM k inner join stays on description = stays.stay_id " %(self.location, self.spatialSign, self.spatialRange)
 
         if self.locationCoords is not None \
             and self.location is None and self.end is None and self.start is None and self.temporalStartRange is None and self.temporalEndRange is None:
-            query = "WITH l AS ( "\
-                    "SELECT description "\
-                    "FROM  places "\
-                    "WHERE ST_Distance(point, ST_SetSRID(ST_MakePoint(%s),4326) ) %s '%s' ) "\
-                    "SELECT DISTINCT stay_id, start_date, end_date FROM l,stays WHERE stay_id = l.description" %(self.locationCoords, self.spatialSign, self.spatialRange)
+            query = " WITH l AS ( "\
+                    " SELECT description "\
+                    " FROM  places "\
+                    " WHERE ST_Distance(point, ST_SetSRID(ST_MakePoint(%s),4326) ) %s '%s' ) "\
+                    " SELECT DISTINCT stay_id, start_date, end_date FROM l,stays WHERE stay_id = l.description" %(self.locationCoords, self.spatialSign, self.spatialRange)
 
         print query
         self.query =  query
