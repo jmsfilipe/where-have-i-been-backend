@@ -218,9 +218,12 @@ def write_odds_ends(track_bits, batch):
 
     if not batch:
         check_gpx_changes(old_days, new_days)
+
+    print "START" ,datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
     insert_trips_database()
     insert_trips_temp_database()
     insert_spans_database()
+    print "end ", datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 
 def write_odds_ends_batch(track_bits):
     from db_setup import insert_trips_database, insert_spans_database, insert_trips_temp_database

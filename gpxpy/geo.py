@@ -278,7 +278,7 @@ def simplify2(points, max_points):
         if points_selected >= max_points:
             return final_points
 
-
+prevSpeed = -1000000
 def simplify_polyline(points, max_distance, max_time):
     """Does Ramer-Douglas-Peucker algorithm for simplification of polyline """
 
@@ -300,6 +300,7 @@ def simplify_polyline(points, max_distance, max_time):
     tmp_max_distance = -1000000
     tmp_max_distance_position = None
 
+
     for point_no in range(len(points[1:-1])):
         point = points[point_no]
         d = abs(a * point.latitude + b * point.longitude + c)
@@ -309,7 +310,12 @@ def simplify_polyline(points, max_distance, max_time):
             tmp_max_distance = d
             tmp_max_distance_position = point_no
 
-
+    v = length_2d([end,begin])/t.seconds #m/s
+    global prevSpeed
+    if(abs(prevSpeed-v)<0.5):
+        return (simplify_polyline(points[:tmp_max_distance_position + 2], max_distance, max_time) +
+            simplify_polyline(points[tmp_max_distance_position + 1:], max_distance, max_time)[1:])
+    prevSpeed = v
     # Now that we have the most distance point, compute its real distance:
 
     real_max_distance, real_time = distance_from_line(points[tmp_max_distance_position], begin, end)
@@ -392,7 +398,7 @@ class LocationDelta:
         """
         Version 1:
             Distance (in meters).
-            angle_from_north *clockwise*. 
+            angle_from_north *clockwise*.
             ...must be given
         Version 2:
             latitude_diff and longitude_diff

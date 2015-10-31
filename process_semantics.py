@@ -7,11 +7,12 @@ import gpxpy.gpx
 import glob
 import os
 import gpxpy.semantic_places as semantic_places
-
+import datetime
 
 if __name__ == '__main__':
 
     print "STARTING..."
+    print datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
     directory_name = 'tracks/'
     saving_name = 'save/'
     saving_directory = os.path.join(directory_name, saving_name)
@@ -34,7 +35,8 @@ if __name__ == '__main__':
             for segment in track.segments:
                     track_bits += [name_locations.find_track_bits(segment.points)]
 
-    print "READY TO SUBMIT."
+    print "READY TO SUBMIT.", datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
     name_locations.write_odds_ends(track_bits, True)
+    print datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
     print "ALL DATA IS NOW STORED.\nYOU CAN CLOSE THIS."
 

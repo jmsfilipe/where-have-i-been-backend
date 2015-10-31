@@ -57,8 +57,6 @@ class WSHandler(tornado.websocket.WebSocketHandler):
             msg = fetch_location_names()
             self.send(msg)
         elif message["message"] == "more results request":
-            print "MAIS UMA REQUEST"
-            print message["data"]
             msg = fetch_more_results(message["data"])
             for i in msg:
                 self.send(i)
@@ -171,12 +169,10 @@ def fetch_location_geojson(location):
 def entry_map_request(ids):
     locations = {}
     trips = {}
-    print ids
     for pair in ids:
         id = pair[0]
         type = pair[1]
         if type == "interval":
-            print fetch_geojson(id), id
             trips[id] = fetch_geojson(id)
         else:
             locations[id] = fetch_location_geojson(id)
@@ -1062,7 +1058,7 @@ class Range:
              " k AS( "\
              " SELECT description FROM places,l "\
              " WHERE ST_Distance(places.point, l.point) %s '%s' )"\
-            " SELECT description, start_date, end_date FROM k inner join stays on description = stays.stay_id " %(self.location, self.spatialSign, self.spatialRange)
+            " SELECT stay_id, start_date, end_date FROM k inner join stays on description = stays.stay_id " %(self.location, self.spatialSign, self.spatialRange)
 
         if self.locationCoords is not None \
             and self.location is None and self.end is None and self.start is None and self.temporalStartRange is None and self.temporalEndRange is None:
@@ -1633,7 +1629,6 @@ def temporary_fetch_from_db():
 
         select = ""
         for i in range(1, size+1):
-            print items[i-1].get_query()
             if i % 2 == 0:
                 select += "q"+str(i)+".trip_id,q"+str(i)+".start_date,q"+str(i)+".end_date, "
             else:
@@ -1646,7 +1641,6 @@ def temporary_fetch_from_db():
             id = 4
             how_many = (size-3)/2
             for j in range(1, how_many+1):
-                print id, size
                 if id <= size:
                     template += add_template%(items[id-1].get_query(), id, id-1, id, items[id].get_query(), id+1, id, id+1)
                     id += 2
@@ -1655,14 +1649,16 @@ def temporary_fetch_from_db():
 
 
     try:
+        print "started query ", datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+        print template
         cur.execute(template)
         temp = cur.fetchall()
+        print "ended query ", datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
         if temp == []:
             return ([],[])
 
         for result in temp:
             for i in range(0, size*3, 3):
-                print i
                 id = result[i]
                 start_date = result[i+1]
                 end_date = result[i+2]
@@ -1675,8 +1671,8 @@ def temporary_fetch_from_db():
 
             all.append(results)
             results = []
-    except psycopg2.ProgrammingError:
-        print "error"
+    except psycopg2.ProgrammingError as e:
+        print "error ", e
         send_to_all_clients(empty_query())
 
     size2 = len(all)
@@ -1684,7 +1680,6 @@ def temporary_fetch_from_db():
     to_show = all
 
     to_show = refine_with_group_by(to_show)
-    print to_show
     to_show = refine_with_group_by_date(to_show)
 
 
@@ -1693,7 +1688,6 @@ def temporary_fetch_from_db():
         global moreResults
         temp = value
         moreResults.append(temp)
-    print "LEN" ,len(moreResults)
 
 
     id = 0
@@ -1725,7 +1719,6 @@ def temporary_fetch_from_db():
             temp += "]}"
             end.append(temp)
         i += 1
-    print "AI",i
 
     return end, send_global_map_data(locations, trips)
 
@@ -1761,11 +1754,6 @@ def quartiles(to_show, nr_queries):
         endTimes = numpy.array_split(numpy.array([x[0] for x in endListOrdered]), size)
         startTimes = numpy.array_split(numpy.array([x[0] for x in startListOrdered]), size)
 
-        print "END"
-        print endTimes
-        print "START"
-        print startTimes
-        print size
         endTimesInterval = numpy.array_split(numpy.array([x[0] for x in endListIntervalOrdered]), size)
         startTimesInterval = numpy.array_split(numpy.array([x[0] for x in startListIntervalOrdered]), size)
 
@@ -1777,11 +1765,9 @@ def quartiles(to_show, nr_queries):
             startTimes = []
 
             for array in tempEnd:
-                print len(array)
                 endTimes.append([sum(array)/len(array)])
 
             for array in tempStart:
-                print len(array)
                 startTimes.append([sum(array)/len(array)])
 
 
@@ -2069,7 +2055,6 @@ def remove_duplicates(values):
     return output
 
 def remove_uncorresponding_entries(to_show, size):
-    print to_show
     final = []
     for key in sorted(to_show):
         if len(to_show[key]) == size:
@@ -2079,7 +2064,6 @@ def remove_uncorresponding_entries(to_show, size):
     return final
 
 def match_queries(all, size, i, j, k, to_show, l):
-    print i, j, k
     for a, b, c in itertools.product(all[i], all[j], all[k]):
        # print "size", size
        # print "len", len(to_show[l])
